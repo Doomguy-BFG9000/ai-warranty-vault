@@ -30,8 +30,15 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — never commit real secrets; .env.example IS tracked
+.env
 .env*.local
+supabase/.env
+supabase/.temp/
+
+# editor / OS
+.idea/
+.vscode/
 
 # typescript
 *.tsbuildinfo

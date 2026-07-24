@@ -1,17 +1,28 @@
 {
   "expo": {
-    "name": "ai-warranty-vault",
+    "name": "AI Warranty Vault",
     "slug": "ai-warranty-vault",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "scheme": "warrantyvault",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0B1120"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.warrantyvault.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "AI Warranty Vault uses the camera so you can photograph receipts and warranties.",
+        "NSPhotoLibraryUsageDescription": "AI Warranty Vault needs photo access so you can attach existing receipt photos."
+      }
     },
     "android": {
+      "package": "com.warrantyvault.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B1120",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -19,7 +30,33 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AI Warranty Vault uses the camera so you can photograph receipts and warranties."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AI Warranty Vault needs photo access so you can attach existing receipt photos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#2563EB"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
