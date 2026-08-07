@@ -31,26 +31,58 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full design and
 npm install --legacy-peer-deps
 ```
 
-### 2. Configure environment
+### 2. Start the backend
+
+The whole backend runs locally in Docker — no hosted project needed for development.
+
+```bash
+npm run db:start
+```
+
+This applies every migration in `supabase/migrations/` and prints your local API URL
+and anon key. Supabase Studio is at http://127.0.0.1:54323.
+
+### 3. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Fill in your Supabase project URL and anon key (from the Supabase dashboard →
-Project Settings → API). The anon key is safe to ship — Row Level Security enforces
+For local development use the values printed by `npm run db:start`:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<the ANON_KEY from db:start>
+```
+
+For a hosted project, take the URL and anon key from the Supabase dashboard →
+Project Settings → API. The anon key is safe to ship — Row Level Security enforces
 per-user access.
 
 > **Server secrets** (`ANTHROPIC_API_KEY`, service-role key) are **never** in `.env`.
 > They live only in the Supabase Edge Function environment. See `supabase/.env.example`.
 
-### 3. Run the app
+### 4. Run the app
 
 ```bash
 npm run ios      # iOS Simulator
 npm run android  # Android emulator
 npm start        # dev server + QR code for a physical device
 ```
+
+## Verifying the backend
+
+The security model (Row Level Security, storage isolation, the freemium cap) is
+exercised against a real local stack rather than assumed:
+
+```bash
+npm run db:reset && npm run verify:backend
+```
+
+This signs up two users through the real API and asserts that neither can read,
+write, or delete the other's data, that the free-tier cap returns HTTP 402, that a
+client cannot grant itself premium, and that receipt images are not publicly
+reachable. Run it after any change to `supabase/migrations/`.
 
 ## Project structure
 
@@ -70,13 +102,22 @@ docs/           Product, architecture and roadmap docs
 
 ## Scripts
 
-| Command             | What it does                     |
-| ------------------- | -------------------------------- |
-| `npm start`         | Start the Expo dev server        |
-| `npm run ios`       | Run on the iOS Simulator         |
-| `npm run android`   | Run on an Android emulator       |
-| `npm run typecheck` | `tsc --noEmit`                   |
-| `npm run lint`      | `expo lint`                      |
+| Command                  | What it does                                        |
+| ------------------------ | --------------------------------------------------- |
+| `npm start`              | Start the Expo dev server                           |
+| `npm run ios`            | Run on the iOS Simulator                            |
+| `npm run android`        | Run on an Android emulator                          |
+| `npm run db:start`       | Start the local Supabase stack (Docker)             |
+| `npm run db:stop`        | Stop the local stack                                |
+| `npm run db:reset`       | Re-apply all migrations from scratch                |
+| `npm run db:types`       | Regenerate `src/types/database.ts` from the schema  |
+| `npm run verify:backend` | Assert RLS, storage isolation and the freemium cap  |
+| `npm test`               | Run unit tests                                      |
+| `npm run typecheck`      | `tsc --noEmit`                                      |
+| `npm run lint`           | `expo lint`                                         |
+
+> After changing anything in `supabase/migrations/`, run `npm run db:reset && npm run db:types`
+> so the generated types stay in sync with the schema.
 
 ## License
 

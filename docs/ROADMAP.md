@@ -6,7 +6,7 @@ demoable (capture → extract → track → remind) by the end of Phase 6.
 | Phase | Goal | Status |
 | ----- | ---- | ------ |
 | 0 | **Scaffold & repo** — Expo + Router, deps, docs, CLAUDE.md, GitHub repo | ✅ Done |
-| 1 | **Backend foundation** — Supabase migrations (tables + RLS), `receipts` bucket, typed client | ⬜ |
+| 1 | **Backend foundation** — Supabase migrations (tables + RLS), `receipts` bucket, typed client | ✅ Done |
 | 2 | **Auth** — email/pw sign up / in / out, session persistence, auth-gated routing, profile bootstrap | ⬜ |
 | 3 | **Capture & store** — camera / gallery, downsize, upload to Storage, create pending product | ⬜ |
 | 4 | **AI extraction** — `extract-receipt` Edge Function (Claude vision), editable review screen, compute expiry | ⬜ |
