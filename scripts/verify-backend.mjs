@@ -140,5 +140,33 @@ check('Bucket is private (public URL blocked)', pub.status >= 400, `HTTP ${pub.s
 const { data: limit, error: limErr } = await alice.rpc('free_tier_product_limit');
 check('Client can read free-tier limit via RPC', !limErr && limit === 5, limErr?.message);
 
+// ── service role access ───────────────────────────────────────────────────
+// Edge Functions (extract-receipt, send-reminders) and billing all run as
+// service_role. RLS is bypassed for that role, but table GRANTs are not, so a
+// missing grant fails every server-side job with "permission denied".
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+const service = createClient(URL, SERVICE_KEY);
+
+const { error: svcRead } = await service.from('products').select('id').limit(1);
+check('service_role can read products', !svcRead, svcRead?.message?.slice(0, 50));
+
+const { error: svcRem } = await service.from('reminders').select('id').limit(1);
+check('service_role can read reminders', !svcRem, svcRem?.message?.slice(0, 50));
+
+const { error: svcWrite } = await service
+  .from('products')
+  .update({ extraction_status: 'done' })
+  .eq('id', p1.id);
+check('service_role can write extraction results', !svcWrite, svcWrite?.message?.slice(0, 50));
+
+// Billing is the only path allowed to grant premium.
+const { error: svcPremium } = await service
+  .from('profiles')
+  .update({ is_premium: true })
+  .eq('id', aliceId);
+check('service_role can grant premium (billing path)', !svcPremium,
+      svcPremium?.message?.slice(0, 50));
+
 console.log(`\n${failures === 0 ? '✅ ALL CHECKS PASSED' : `❌ ${failures} CHECK(S) FAILED`}`);
 process.exit(failures === 0 ? 0 : 1);

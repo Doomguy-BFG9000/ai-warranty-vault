@@ -40,6 +40,10 @@ function RootNavigator() {
     >
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="review"
+          options={{ title: 'Confirm details', presentation: 'modal' }}
+        />
       </Stack.Protected>
 
       <Stack.Protected guard={!isSignedIn}>

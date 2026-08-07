@@ -16,11 +16,20 @@
 -- `anon` is deliberately given nothing: all data access happens after login,
 -- and authentication itself goes through GoTrue rather than PostgREST.
 
-grant usage on schema public to authenticated;
+grant usage on schema public to authenticated, service_role;
 
 grant select, update                 on public.profiles  to authenticated;
 grant select, insert, update, delete on public.products  to authenticated;
 grant select, delete                 on public.reminders to authenticated;
+
+-- Edge Functions run as service_role: extract-receipt writes back extraction
+-- results, send-reminders reads due reminders and stamps sent_at, and billing
+-- updates is_premium. service_role bypasses RLS but still needs table
+-- privileges, and without these every server-side job fails with
+-- "permission denied for table ...".
+grant select, insert, update, delete
+  on public.profiles, public.products, public.reminders
+  to service_role;
 
 
 -- ── Enable RLS ──────────────────────────────────────────────────────────────
