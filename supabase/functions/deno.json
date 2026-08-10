@@ -1,0 +1,12 @@
+{
+  "//": "Edge Functions run on Deno, not the app's React Native runtime. The app's tsconfig excludes this directory; type-check these with `deno check`.",
+  "imports": {
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@0.70.1",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}

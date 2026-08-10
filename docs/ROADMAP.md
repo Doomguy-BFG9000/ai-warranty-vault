@@ -7,9 +7,9 @@ demoable (capture → extract → track → remind) by the end of Phase 6.
 | ----- | ---- | ------ |
 | 0 | **Scaffold & repo** — Expo + Router, deps, docs, CLAUDE.md, GitHub repo | ✅ Done |
 | 1 | **Backend foundation** — Supabase migrations (tables + RLS), `receipts` bucket, typed client | ✅ Done |
-| 2 | **Auth** — email/pw sign up / in / out, session persistence, auth-gated routing, profile bootstrap | ⬜ |
-| 3 | **Capture & store** — camera / gallery, downsize, upload to Storage, create pending product | ⬜ |
-| 4 | **AI extraction** — `extract-receipt` Edge Function (Claude vision), editable review screen, compute expiry | ⬜ |
+| 2 | **Auth** — email/pw sign up / in / out, session persistence, auth-gated routing, profile bootstrap | ✅ Done |
+| 3 | **Capture & store** — camera / gallery, downsize, upload to Storage, create pending product | ✅ Done |
+| 4 | **AI extraction** — `extract-receipt` Edge Function (Claude vision), editable review screen, compute expiry | ✅ Done |
 | 5 | **Vault UX** — product list w/ expiry chips, detail, edit / delete, empty state | ⬜ |
 | 6 | **Reminders** — push token registration, reminder rows, `send-reminders` + pg_cron, local fallback | ⬜ |
 | 7 | **Freemium gating** — free product-count limit, upgrade sheet, `is_premium` bypass | ⬜ |

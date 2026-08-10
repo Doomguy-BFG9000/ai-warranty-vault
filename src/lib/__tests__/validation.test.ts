@@ -1,5 +1,6 @@
 import {
   centsToPriceInput,
+  normaliseCurrency,
   priceToCents,
   validateEmail,
   validatePassword,
@@ -100,5 +101,26 @@ describe('price handling', () => {
     expect(centsToPriceInput(priceToCents('129.99'))).toBe('129.99');
     expect(centsToPriceInput(null)).toBe('');
     expect(centsToPriceInput(0)).toBe('0.00');
+  });
+});
+
+describe('normaliseCurrency', () => {
+  it('accepts a well-formed code', () => {
+    expect(normaliseCurrency('USD')).toBe('USD');
+  });
+
+  it('upper-cases and trims what the model returns', () => {
+    expect(normaliseCurrency(' usd ')).toBe('USD');
+  });
+
+  it('rejects anything the database constraint would reject', () => {
+    // These reach a NOT NULL column with a ^[A-Z]{3}$ check, so a bad value
+    // would fail the insert rather than the extraction.
+    expect(normaliseCurrency('dollars')).toBeNull();
+    expect(normaliseCurrency('US')).toBeNull();
+    expect(normaliseCurrency('US$')).toBeNull();
+    expect(normaliseCurrency('')).toBeNull();
+    expect(normaliseCurrency(null)).toBeNull();
+    expect(normaliseCurrency(undefined)).toBeNull();
   });
 });

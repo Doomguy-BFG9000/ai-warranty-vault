@@ -70,6 +70,33 @@ npm run android  # Android emulator
 npm start        # dev server + QR code for a physical device
 ```
 
+## AI extraction
+
+Receipt extraction runs in the `extract-receipt` Edge Function, never in the app —
+that is what keeps the Anthropic key off the device.
+
+```bash
+cp supabase/.env.example supabase/.env   # add your ANTHROPIC_API_KEY
+npm run fn:serve                          # serve functions against the local stack
+```
+
+For a hosted project, set the secret on the project instead:
+
+```bash
+npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-... 
+```
+
+The model defaults to `claude-opus-5`. Extraction is a short, high-volume call, so
+set `CLAUDE_MODEL` (e.g. `claude-sonnet-5`) if cost per receipt matters more than
+accuracy — no code change required.
+
+The function downloads the receipt **as the calling user**, so Storage RLS decides
+what it may read. Verify that boundary — it needs no real API key:
+
+```bash
+npm run verify:extract-fn
+```
+
 ## Verifying the backend
 
 The security model (Row Level Security, storage isolation, the freemium cap) is
@@ -112,6 +139,8 @@ docs/           Product, architecture and roadmap docs
 | `npm run db:reset`       | Re-apply all migrations from scratch                |
 | `npm run db:types`       | Regenerate `src/types/database.ts` from the schema  |
 | `npm run verify:backend` | Assert RLS, storage isolation and the freemium cap  |
+| `npm run fn:serve`       | Serve Edge Functions against the local stack        |
+| `npm run verify:extract-fn` | Assert the extraction function's security boundary |
 | `npm test`               | Run unit tests                                      |
 | `npm run typecheck`      | `tsc --noEmit`                                      |
 | `npm run lint`           | `expo lint`                                         |

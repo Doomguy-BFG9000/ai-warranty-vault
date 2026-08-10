@@ -82,3 +82,18 @@ export function centsToPriceInput(cents: number | null): string {
   if (cents === null) return '';
   return (cents / 100).toFixed(2);
 }
+
+/**
+ * Normalises a model-supplied currency code to the `^[A-Z]{3}$` shape the
+ * products table enforces, returning null for anything that does not fit.
+ *
+ * Extracted values reach the database directly, so anything the model invents
+ * ("dollars", "us", "usd ") would otherwise fail the insert with a constraint
+ * violation the user can do nothing about. Falling back to null lets the column
+ * default apply instead.
+ */
+export function normaliseCurrency(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const code = value.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : null;
+}
