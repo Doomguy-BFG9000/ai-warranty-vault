@@ -105,6 +105,16 @@ const missing = await call(aliceToken, { receiptPath: `${aliceId}/does-not-exist
 check('Missing object is indistinguishable from a forbidden one', missing.status === 404,
       `HTTP ${missing.status}`);
 
+// A path that starts with Bob's own folder but climbs out of it. The storage
+// policies authorize on the first path segment, so this must not become a way
+// to read Alice's object by prefixing an allowed one.
+const traversal = await call(bobToken, { receiptPath: `${b.user.id}/../${alicePath}` });
+check(
+  'Path traversal out of the caller folder is refused',
+  traversal.status === 404,
+  `HTTP ${traversal.status}`,
+);
+
 // ── the owner gets past every check ───────────────────────────────────────
 // With a placeholder API key this stops at the Claude call, which is exactly
 // the point: reaching that call proves auth, validation and RLS all passed.
