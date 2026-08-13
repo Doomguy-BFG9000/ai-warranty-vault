@@ -48,6 +48,9 @@ an **editable review screen** and only persisted after the user confirms.
 - Prefer simple, tested, maintainable code over cleverness. Avoid premature optimization
   and unnecessary dependencies.
 - Conventional commits (`feat:`, `fix:`, `chore:`, `docs:` …), one coherent change each.
+- Commit messages describe the change only. Never add a `Co-Authored-By: Claude`
+  trailer or any other mention of an LLM — these repositories are public-facing
+  professional work.
 
 ## Commands
 
