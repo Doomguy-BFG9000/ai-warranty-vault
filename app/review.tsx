@@ -53,6 +53,18 @@ export default function ReviewScreen() {
   // which would bill a second extraction for the same receipt.
   const startedRef = useRef(false);
 
+  function applyExtraction(result: ReceiptExtraction) {
+    setValues({
+      name: result.product_name ?? '',
+      merchant: result.merchant ?? '',
+      purchaseDate: result.purchase_date ?? '',
+      warrantyMonths: result.warranty_months === null ? '' : String(result.warranty_months),
+      price: result.price_cents === null ? '' : centsToPriceInput(result.price_cents),
+    });
+    setCategory(result.category);
+    setCurrency(normaliseCurrency(result.currency));
+  }
+
   useEffect(() => {
     if (!receiptPath || startedRef.current) return;
     startedRef.current = true;
@@ -68,18 +80,6 @@ export default function ReviewScreen() {
         // extract.isError drives the explanatory banner.
       });
   }, [receiptPath, extract]);
-
-  function applyExtraction(result: ReceiptExtraction) {
-    setValues({
-      name: result.product_name ?? '',
-      merchant: result.merchant ?? '',
-      purchaseDate: result.purchase_date ?? '',
-      warrantyMonths: result.warranty_months === null ? '' : String(result.warranty_months),
-      price: result.price_cents === null ? '' : centsToPriceInput(result.price_cents),
-    });
-    setCategory(result.category);
-    setCurrency(normaliseCurrency(result.currency));
-  }
 
   function handleChange(field: ProductFormField, value: string) {
     setValues((prev) => ({ ...prev, [field]: value }));

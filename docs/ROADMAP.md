@@ -10,10 +10,10 @@ demoable (capture → extract → track → remind) by the end of Phase 6.
 | 2 | **Auth** — email/pw sign up / in / out, session persistence, auth-gated routing, profile bootstrap | ✅ Done |
 | 3 | **Capture & store** — camera / gallery, downsize, upload to Storage, create pending product | ✅ Done |
 | 4 | **AI extraction** — `extract-receipt` Edge Function (Claude vision), editable review screen, compute expiry | ✅ Done |
-| 5 | **Vault UX** — product list w/ expiry chips, detail, edit / delete, empty state | ⬜ |
-| 6 | **Reminders** — push token registration, reminder rows, `send-reminders` + pg_cron, local fallback | ⬜ |
-| 7 | **Freemium gating** — free product-count limit, upgrade sheet, `is_premium` bypass | ⬜ |
-| 8 | **Polish & verify** — loading/error states, validation, README run steps, end-to-end simulator pass, `tsc` + lint | ⬜ |
+| 5 | **Vault UX** — product list w/ expiry chips, detail, edit / delete, empty state | ✅ Done |
+| 6 | **Reminders** — push token registration, reminder rows, `send-reminders` + pg_cron, local fallback | ✅ Done |
+| 7 | **Freemium gating** — free product-count limit, upgrade sheet, `is_premium` bypass | ✅ Done |
+| 8 | **Polish & verify** — loading/error states, validation, README run steps, end-to-end simulator pass, `tsc` + lint | ✅ Done |
 
 ## Post-MVP (later)
 

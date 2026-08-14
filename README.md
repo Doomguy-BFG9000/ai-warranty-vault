@@ -141,6 +141,7 @@ docs/           Product, architecture and roadmap docs
 | `npm run verify:backend` | Assert RLS, storage isolation and the freemium cap  |
 | `npm run fn:serve`       | Serve Edge Functions against the local stack        |
 | `npm run verify:extract-fn` | Assert the extraction function's security boundary |
+| `npm run verify:reminders` | Assert reminder scheduling and once-only delivery |
 | `npm test`               | Run unit tests                                      |
 | `npm run typecheck`      | `tsc --noEmit`                                      |
 | `npm run lint`           | `expo lint`                                         |
@@ -151,3 +152,29 @@ docs/           Product, architecture and roadmap docs
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Reminders
+
+Reminder rows are created by a database trigger whenever a product's expiry
+changes — 30 and 7 days before it lapses. Delivery is two-pronged:
+
+- **Server (primary):** an hourly `pg_cron` job calls the `send-reminders` Edge
+  Function, which pushes through Expo and stamps `sent_at` so a window is never
+  delivered twice. This works with the app closed.
+- **On device (fallback):** the app schedules the same windows locally, so a user
+  with no push token — or no connectivity when the job runs — still gets nudged.
+
+For a hosted project the job needs two settings, which are per-project secrets
+and so are not in the migration:
+
+```bash
+alter database postgres set app.settings.functions_url = 'https://<ref>.supabase.co/functions/v1';
+alter database postgres set app.settings.service_role_key = '<service role key>';
+```
+
+Without them the job logs a notice and does nothing, rather than firing requests
+that are guaranteed to fail.
+
+```bash
+npm run verify:reminders
+```

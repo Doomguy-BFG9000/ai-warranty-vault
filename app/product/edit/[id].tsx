@@ -1,5 +1,5 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
@@ -28,14 +28,14 @@ export default function EditProductScreen() {
   const [errors, setErrors] = useState<ProductFormErrors>({});
   const [loadedId, setLoadedId] = useState<string | null>(null);
 
-  // Populate once per product. Re-running on every render of `product` would
-  // discard whatever the user has typed as the query refetches in the background.
-  useEffect(() => {
-    if (product && product.id !== loadedId) {
-      setValues(productToFormValues(product));
-      setLoadedId(product.id);
-    }
-  }, [product, loadedId]);
+  // Populate once per product, during render rather than in an effect: an
+  // effect would commit an empty form first and then immediately re-render with
+  // the real values. Comparing against the id we last loaded means a background
+  // refetch cannot discard what the user has typed.
+  if (product && product.id !== loadedId) {
+    setValues(productToFormValues(product));
+    setLoadedId(product.id);
+  }
 
   function handleChange(field: ProductFormField, value: string) {
     setValues((prev) => ({ ...prev, [field]: value }));

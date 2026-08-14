@@ -7,7 +7,7 @@ import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { getAuthErrorMessage } from '@/lib/errors';
-import { validateEmail, validatePassword } from '@/lib/validation';
+import { validateEmail } from '@/lib/validation';
 import { colors, spacing, typography } from '@/theme';
 
 export default function SignInScreen() {
