@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/hooks/useAuth';
+import { cancelLocalReminders, syncLocalReminders } from '@/lib/notifications';
 import { deleteReceiptImage } from '@/lib/receipts';
 import { supabase } from '@/lib/supabase';
 import type { Product, ProductInsert, ProductUpdate } from '@/types/models';
@@ -68,7 +69,10 @@ export function useCreateProduct() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (product) => {
+      // Belt-and-braces delivery: the server cron owns the primary push, and
+      // these local notifications still fire if push is unavailable.
+      void syncLocalReminders(product).catch(() => {});
       void queryClient.invalidateQueries({ queryKey: productKeys.all });
     },
   });
@@ -96,6 +100,8 @@ export function useUpdateProduct() {
       return data;
     },
     onSuccess: (product) => {
+      // The expiry may have moved, so the local schedule is rebuilt from scratch.
+      void syncLocalReminders(product).catch(() => {});
       queryClient.setQueryData(productKeys.detail(product.id), product);
       void queryClient.invalidateQueries({ queryKey: productKeys.all });
     },
@@ -117,7 +123,10 @@ export function useDeleteProduct() {
         await deleteReceiptImage(product.receipt_image_path).catch(() => {});
       }
     },
-    onSuccess: () => {
+    onSuccess: (_result, product) => {
+      // The database cascade removes the pending rows; this clears the
+      // notifications already handed to the OS, which it cannot reach.
+      void cancelLocalReminders(product.id).catch(() => {});
       void queryClient.invalidateQueries({ queryKey: productKeys.all });
     },
   });

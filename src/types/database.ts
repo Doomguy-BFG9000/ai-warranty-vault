@@ -151,6 +151,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reminders_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -158,6 +165,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      dispatch_due_reminders: { Args: never; Returns: undefined }
       free_tier_product_limit: { Args: never; Returns: number }
     }
     Enums: {

@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { usePushRegistration } from '@/hooks/usePushRegistration';
 import { queryClient } from '@/lib/queryClient';
 import { colors } from '@/theme';
 
@@ -16,6 +17,10 @@ import { colors } from '@/theme';
  */
 function RootNavigator() {
   const { session, initializing } = useAuth();
+
+  // Registers the device and stores its push token on the profile, which is
+  // where the reminder cron looks. No-ops until someone is signed in.
+  usePushRegistration();
 
   // Hold the UI until the persisted session has been read, otherwise a returning
   // user sees the sign-in screen for a frame before being bounced to the vault.

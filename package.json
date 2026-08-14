@@ -49,7 +49,8 @@
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
     "verify:extract-fn": "node scripts/verify-extract-fn.mjs",
-    "fn:serve": "npx supabase functions serve --env-file supabase/.env"
+    "fn:serve": "npx supabase functions serve --env-file supabase/.env",
+    "verify:reminders": "node scripts/verify-reminders.mjs"
   },
   "private": true
 }
