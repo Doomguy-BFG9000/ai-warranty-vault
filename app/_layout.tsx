@@ -44,6 +44,19 @@ function RootNavigator() {
           name="review"
           options={{ title: 'Confirm details', presentation: 'modal' }}
         />
+        {/*
+          headerBackTitle is set explicitly because the back label otherwise
+          derives from the previous route's name — which for the tab navigator
+          is the group folder, so the button reads "(tabs)".
+        */}
+        <Stack.Screen
+          name="product/[id]"
+          options={{ title: 'Product', headerBackTitle: 'Vault' }}
+        />
+        <Stack.Screen
+          name="product/edit/[id]"
+          options={{ title: 'Edit details', headerBackTitle: 'Back' }}
+        />
       </Stack.Protected>
 
       <Stack.Protected guard={!isSignedIn}>

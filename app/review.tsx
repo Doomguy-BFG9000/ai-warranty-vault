@@ -3,25 +3,25 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { ProductForm } from '@/components/ProductForm';
 import { Screen } from '@/components/Screen';
-import { TextField } from '@/components/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { useExtractReceipt } from '@/hooks/useExtractReceipt';
 import { useCreateProduct } from '@/hooks/useProducts';
 import { getDatabaseErrorMessage, isFreeTierLimitError } from '@/lib/errors';
-import { deleteReceiptImage } from '@/lib/receipts';
 import {
-  centsToPriceInput,
-  normaliseCurrency,
-  priceToCents,
-  validatePrice,
-  validatePurchaseDate,
-  validateWarrantyMonths,
-} from '@/lib/validation';
+  EMPTY_PRODUCT_FORM,
+  hasErrors,
+  toProductFields,
+  validateProductForm,
+  type ProductFormErrors,
+  type ProductFormField,
+  type ProductFormValues,
+} from '@/lib/productForm';
+import { deleteReceiptImage } from '@/lib/receipts';
+import { centsToPriceInput, normaliseCurrency } from '@/lib/validation';
 import { colors, radii, spacing, typography } from '@/theme';
 import type { ReceiptExtraction } from '@/types/extraction';
-
-type FieldErrors = Partial<Record<'name' | 'purchaseDate' | 'warrantyMonths' | 'price', string>>;
 
 /**
  * Confirmation step for a captured receipt.
@@ -36,19 +36,15 @@ export default function ReviewScreen() {
   const createProduct = useCreateProduct();
   const extract = useExtractReceipt();
 
-  const [name, setName] = useState('');
-  const [merchant, setMerchant] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState('');
-  const [warrantyMonths, setWarrantyMonths] = useState('');
-  const [price, setPrice] = useState('');
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [values, setValues] = useState<ProductFormValues>(EMPTY_PRODUCT_FORM);
+  const [errors, setErrors] = useState<ProductFormErrors>({});
 
-  // Fields Claude filled that have no input of their own, carried through to the insert.
+  // Extracted fields with no input of their own, carried through to the insert.
   const [category, setCategory] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string | null>(null);
   const [extraction, setExtraction] = useState<ReceiptExtraction | null>(null);
 
-  // Guards against the effect firing twice (React 18 strict mode double-invoke),
+  // Guards against the effect firing twice (React strict-mode double-invoke),
   // which would bill a second extraction for the same receipt.
   const startedRef = useRef(false);
 
@@ -69,28 +65,27 @@ export default function ReviewScreen() {
   }, [receiptPath, extract]);
 
   function applyExtraction(result: ReceiptExtraction) {
-    if (result.product_name) setName(result.product_name);
-    if (result.merchant) setMerchant(result.merchant);
-    if (result.purchase_date) setPurchaseDate(result.purchase_date);
-    if (result.warranty_months !== null) setWarrantyMonths(String(result.warranty_months));
-    if (result.price_cents !== null) setPrice(centsToPriceInput(result.price_cents));
+    setValues({
+      name: result.product_name ?? '',
+      merchant: result.merchant ?? '',
+      purchaseDate: result.purchase_date ?? '',
+      warrantyMonths: result.warranty_months === null ? '' : String(result.warranty_months),
+      price: result.price_cents === null ? '' : centsToPriceInput(result.price_cents),
+    });
     setCategory(result.category);
     setCurrency(normaliseCurrency(result.currency));
   }
 
-  function clearError(field: keyof FieldErrors) {
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  function handleChange(field: ProductFormField, value: string) {
+    setValues((prev) => ({ ...prev, [field]: value }));
+    // Clear a field's error as soon as it is edited, so a corrected value does
+    // not keep showing a stale complaint.
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   }
 
   async function handleSave() {
-    const nextErrors: FieldErrors = {
-      name: name.trim() ? undefined : 'Product name is required.',
-      purchaseDate: validatePurchaseDate(purchaseDate) ?? undefined,
-      warrantyMonths: validateWarrantyMonths(warrantyMonths) ?? undefined,
-      price: validatePrice(price) ?? undefined,
-    };
-
-    if (Object.values(nextErrors).some(Boolean)) {
+    const nextErrors = validateProductForm(values);
+    if (hasErrors(nextErrors)) {
       setErrors(nextErrors);
       return;
     }
@@ -100,11 +95,7 @@ export default function ReviewScreen() {
     try {
       await createProduct.mutateAsync({
         user_id: user.id,
-        name: name.trim(),
-        merchant: merchant.trim() || null,
-        purchase_date: purchaseDate.trim() || null,
-        warranty_months: warrantyMonths.trim() ? Number(warrantyMonths.trim()) : null,
-        price_cents: priceToCents(price),
+        ...toProductFields(values),
         category,
         // The column is NOT NULL with a USD default, so only override it when
         // the receipt actually told us something.
@@ -149,71 +140,16 @@ export default function ReviewScreen() {
     <Screen scroll keyboardAvoiding edges={['bottom']}>
       <ReviewBanner extraction={extraction} failed={extract.isError} />
 
-      <TextField
-        label="Product"
-        value={name}
-        onChangeText={(value) => {
-          setName(value);
-          clearError('name');
-        }}
-        error={errors.name}
-        placeholder="e.g. MacBook Pro 14”"
-        autoCapitalize="words"
-      />
-
-      <TextField
-        label="Store"
-        value={merchant}
-        onChangeText={setMerchant}
-        placeholder="e.g. Apple Store"
-        autoCapitalize="words"
-      />
-
-      <TextField
-        label="Purchase date"
-        value={purchaseDate}
-        onChangeText={(value) => {
-          setPurchaseDate(value);
-          clearError('purchaseDate');
-        }}
-        error={errors.purchaseDate}
-        hint="Format: YYYY-MM-DD"
-        placeholder="2026-08-07"
-        keyboardType="numbers-and-punctuation"
-        autoCapitalize="none"
-      />
-
-      <TextField
-        label="Warranty length (months)"
-        value={warrantyMonths}
-        onChangeText={(value) => {
-          setWarrantyMonths(value);
-          clearError('warrantyMonths');
-        }}
-        error={errors.warrantyMonths}
-        hint="Expiry is calculated from the purchase date."
-        placeholder="24"
-        keyboardType="number-pad"
-      />
-
-      <TextField
-        label={currency ? `Price (${currency})` : 'Price'}
-        value={price}
-        onChangeText={(value) => {
-          setPrice(value);
-          clearError('price');
-        }}
-        error={errors.price}
-        placeholder="1299.00"
-        keyboardType="decimal-pad"
+      <ProductForm
+        values={values}
+        errors={errors}
+        onChange={handleChange}
+        currency={currency}
+        disabled={createProduct.isPending}
       />
 
       <View style={styles.actions}>
-        <Button
-          label="Save to vault"
-          onPress={handleSave}
-          loading={createProduct.isPending}
-        />
+        <Button label="Save to vault" onPress={handleSave} loading={createProduct.isPending} />
         <Button
           label="Cancel"
           variant="ghost"
