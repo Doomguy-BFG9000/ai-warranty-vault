@@ -5,9 +5,11 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/components/Button';
 import { ProductForm } from '@/components/ProductForm';
 import { Screen } from '@/components/Screen';
+import { UpgradeSheet } from '@/components/UpgradeSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { useExtractReceipt } from '@/hooks/useExtractReceipt';
 import { useCreateProduct } from '@/hooks/useProducts';
+import { useProductQuota } from '@/hooks/useProductQuota';
 import { getDatabaseErrorMessage, isFreeTierLimitError } from '@/lib/errors';
 import {
   EMPTY_PRODUCT_FORM,
@@ -35,6 +37,9 @@ export default function ReviewScreen() {
   const { user } = useAuth();
   const createProduct = useCreateProduct();
   const extract = useExtractReceipt();
+  const { data: quota } = useProductQuota();
+
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const [values, setValues] = useState<ProductFormValues>(EMPTY_PRODUCT_FORM);
   const [errors, setErrors] = useState<ProductFormErrors>({});
@@ -107,11 +112,9 @@ export default function ReviewScreen() {
       router.dismissTo('/');
     } catch (error) {
       if (isFreeTierLimitError(error)) {
-        Alert.alert(
-          'Free plan limit reached',
-          'You are tracking the maximum number of products on the free plan. Upgrade for unlimited storage.',
-          [{ text: 'OK' }],
-        );
+        // The cap is enforced by the database, so this is the authoritative
+        // signal — the sheet explains it rather than a bare alert.
+        setShowUpgrade(true);
         return;
       }
       Alert.alert('Could not save', getDatabaseErrorMessage(error));
@@ -146,6 +149,12 @@ export default function ReviewScreen() {
         onChange={handleChange}
         currency={currency}
         disabled={createProduct.isPending}
+      />
+
+      <UpgradeSheet
+        visible={showUpgrade}
+        onDismiss={() => setShowUpgrade(false)}
+        limit={quota?.limit ?? null}
       />
 
       <View style={styles.actions}>

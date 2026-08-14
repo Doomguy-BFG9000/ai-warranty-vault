@@ -4,15 +4,19 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
+import { UpgradeSheet } from '@/components/UpgradeSheet';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductQuota } from '@/hooks/useProductQuota';
 import { useProfile } from '@/hooks/useProfile';
 import { colors, radii, spacing, typography } from '@/theme';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
+  const { data: quota } = useProductQuota();
   const queryClient = useQueryClient();
   const [signingOut, setSigningOut] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -54,12 +58,43 @@ export default function SettingsScreen() {
             <Text style={styles.badgeText}>{isPremium ? '★ Premium' : 'Free'}</Text>
           </View>
         </View>
-        <Text style={styles.planHint}>
-          {isPremium
-            ? 'Unlimited products and reminders.'
-            : 'Track up to 5 products. Upgrade for unlimited storage.'}
-        </Text>
+        {isPremium ? (
+          <Text style={styles.planHint}>Unlimited products and reminders.</Text>
+        ) : quota ? (
+          <>
+            {/* The bar makes remaining quota legible at a glance; the sentence
+                below states it in words for anyone who cannot read the bar. */}
+            <View style={styles.quotaBar}>
+              <View
+                style={[
+                  styles.quotaFill,
+                  {
+                    width: `${Math.min(100, (quota.used / (quota.limit || 1)) * 100)}%`,
+                    backgroundColor: quota.atLimit ? colors.warning : colors.primary,
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.planHint}>
+              {quota.atLimit
+                ? `You are using all ${quota.limit} free products.`
+                : `${quota.used} of ${quota.limit} products used.`}
+            </Text>
+          </>
+        ) : (
+          <Text style={styles.planHint}>Track up to 5 products on the free plan.</Text>
+        )}
       </View>
+
+      {!isPremium ? (
+        <Button label="Upgrade to Premium" onPress={() => setShowUpgrade(true)} />
+      ) : null}
+
+      <UpgradeSheet
+        visible={showUpgrade}
+        onDismiss={() => setShowUpgrade(false)}
+        limit={quota?.limit ?? null}
+      />
 
       <Button
         label="Sign out"
@@ -86,6 +121,14 @@ const styles = StyleSheet.create({
   planText: { gap: spacing.xs },
   planName: { ...typography.subheading, color: colors.text },
   planHint: { ...typography.caption, color: colors.textFaint, marginTop: spacing.xs },
+  quotaBar: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceAlt,
+    overflow: 'hidden',
+    marginTop: spacing.md,
+  },
+  quotaFill: { height: '100%', borderRadius: 3 },
   badge: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
