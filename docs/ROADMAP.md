@@ -14,15 +14,21 @@ demoable (capture → extract → track → remind) by the end of Phase 6.
 | 6 | **Reminders** — push token registration, reminder rows, `send-reminders` + pg_cron, local fallback | ✅ Done |
 | 7 | **Freemium gating** — free product-count limit, upgrade sheet, `is_premium` bypass | ✅ Done |
 | 8 | **Polish & verify** — loading/error states, validation, README run steps, end-to-end simulator pass, `tsc` + lint | ✅ Done |
+| 9 | **Document assistant** — `services/ai` (FastAPI + LangChain + LangGraph), pgvector, hybrid retrieval with citations, human-approved claim drafts, document/search/chat/draft screens | ✅ Done locally |
+
+Phase 9 is a working local build, not a deployment: it has no live-provider run
+behind it and no production hardening. See
+[`AI-ARCHITECTURE.md`](AI-ARCHITECTURE.md) §10 for the limitations and
+[`AI-INTERVIEW.md`](AI-INTERVIEW.md) §11 for what deployment would still need.
 
 ## Post-MVP (later)
 
 - RevenueCat billing for real premium subscriptions (App Store / Play).
 - Email / Gmail receipt import.
 - Family / shared vaults.
-- Warranty-claim assistance (auto-fill claim forms, store serial numbers & photos).
 - Web app via Expo web export.
 - Categories, search, and filtering at scale.
+- Reranking over the fused retrieval candidates, and a larger labelled eval set.
 
 ## Verification per phase
 

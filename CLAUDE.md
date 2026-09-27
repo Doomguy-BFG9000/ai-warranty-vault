@@ -16,8 +16,11 @@ by product count; `is_premium` unlocks unlimited). Full context in
 ## Stack
 
 - **Client:** Expo SDK 57 / React Native, TypeScript, **Expo Router** (file-based routes).
-- **Backend:** Supabase — Postgres (RLS), Auth, Storage, Edge Functions (Deno), pg_cron.
-- **AI:** Claude API vision in the `extract-receipt` Edge Function.
+- **Backend:** Supabase — Postgres (RLS + pgvector), Auth, Storage, Edge Functions (Deno), pg_cron.
+- **Receipt AI:** Claude API vision in the `extract-receipt` Edge Function (Deno).
+- **Document AI:** `services/ai` — Python 3.11, FastAPI, LangChain, LangGraph,
+  pgvector. Indexes product documents, answers questions from them with citations, and
+  prepares human-approved claim drafts. See [`docs/AI-ARCHITECTURE.md`](docs/AI-ARCHITECTURE.md).
 - **Data:** TanStack Query over the Supabase JS client.
 - **Notifications:** expo-notifications + Expo Push.
 
@@ -28,6 +31,23 @@ by product count; `is_premium` unlocks unlimited). Full context in
 - Use the design tokens in `src/theme` — no hardcoded colors/spacing in components.
 - Screens live in `app/` (Expo Router). Keep screen files thin; push logic into hooks/lib.
 - All data access goes through TanStack Query hooks, not raw calls inside components.
+- Calls to the document-assistant service go through `src/lib/aiApi.ts`, never `fetch`
+  in a component. Its types mirror `services/ai/app/schemas.py` in `src/types/ai.ts`.
+
+### Python service (`services/ai`)
+
+- Request work runs under Row Level Security as `authenticated`; the privileged scope is
+  for the indexing worker and server-authored rows only. `app/db.py` explains the
+  boundary and `tests/test_access_isolation.py` enforces it.
+- Model names are always environment variables. Never hardcode one, and never assume an
+  identifier already in the code is still reachable — `scripts/preflight.py` checks.
+- `PROVIDER_MODE=mock` is for offline tests and never engages as a fallback: a provider
+  failure surfaces as an error rather than degrading to fake embeddings.
+- Changing chunking or the embedding model changes `index_version`, which excludes older
+  chunks from search until documents are reindexed. That is intentional — do not work
+  around it.
+- Pinned dependencies. `requirements.txt` is the direct list; `requirements.lock.txt` is
+  the resolved set the tests passed against. Regenerate the lock only from a green run.
 
 ## Secrets — hard rules
 
@@ -59,6 +79,15 @@ npm run ios         # run on iOS Simulator
 npm start           # dev server
 npm run typecheck   # tsc --noEmit
 npm run lint        # expo lint
+npm test            # jest
+
+# document assistant (services/ai)
+npm run ai:serve        # FastAPI on :8000
+npm run ai:worker       # indexing worker
+npm run ai:test         # pytest against a real local Postgres + pgvector
+npm run ai:preflight    # verify keys, models and schema
+npm run ai:eval         # retrieval + answering evaluation
+npm run ai:walkthrough  # the whole document flow, printed
 ```
 
 <!-- BEGIN: personal-status -->

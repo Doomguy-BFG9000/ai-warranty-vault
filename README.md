@@ -16,7 +16,8 @@ the vault tracks the expiry and reminds you **before** coverage runs out.
 | ------------ | -------------------------------------------------------------- |
 | Client       | Expo / React Native (TypeScript, Expo Router)                  |
 | Backend      | Supabase — Postgres + Auth + Storage + Edge Functions + pg_cron |
-| AI           | Claude API (vision) — structured receipt extraction            |
+| Receipt AI   | Claude API (vision) — structured receipt extraction, in Deno    |
+| Document AI  | `services/ai` — FastAPI + LangChain + LangGraph + pgvector       |
 | Data fetching| TanStack Query                                                 |
 | Notifications| expo-notifications + Expo Push                                 |
 
@@ -97,6 +98,50 @@ what it may read. Verify that boundary — it needs no real API key:
 npm run verify:extract-fn
 ```
 
+## Document assistant
+
+Attach a manual, warranty card or service terms to a product, then ask questions about
+it. Answers are built **only** from the attached documents and cite the page they came
+from; when the documents do not answer the question, the app says so rather than
+guessing. It can also draft a service request, which a person edits and approves — the
+app never sends anything.
+
+This lives in [`services/ai`](services/ai) as a small Python service alongside the app.
+It does not replace anything: the client stays Expo, the database stays the same
+Supabase Postgres, and receipt extraction stays in the Deno Edge Function.
+
+```bash
+cd services/ai
+python -m venv .venv && .venv/bin/pip install -r requirements.lock.txt
+cp .env.example .env                       # keys and local Supabase values
+.venv/bin/python scripts/preflight.py      # checks keys, models and schema
+
+npm run ai:serve      # from the repo root, in one terminal
+npm run ai:worker     # and the indexing worker in another
+```
+
+Then point the app at it in `.env`:
+
+```
+EXPO_PUBLIC_AI_API_URL=http://127.0.0.1:8000
+```
+
+With that unset the app works exactly as before and the new screens explain what is
+missing.
+
+- [`docs/AI-ARCHITECTURE.md`](docs/AI-ARCHITECTURE.md) — data flow, access boundaries,
+  the graph, and the chunking/embedding/retrieval/checkpoint decisions.
+- [`docs/AI-DEMO.md`](docs/AI-DEMO.md) — a ten-minute walkthrough with the documents and
+  questions ready to paste.
+- [`docs/AI-INTERVIEW.md`](docs/AI-INTERVIEW.md) — what is actually implemented, where it
+  is, the trade-offs, and exercises to run yourself.
+
+```bash
+npm run ai:test         # behaviour tests against a real local Postgres + pgvector
+npm run ai:eval         # retrieval and answering against a labelled question set
+npm run ai:walkthrough  # the whole flow printed, including a restart mid-approval
+```
+
 ## Verifying the backend
 
 The security model (Row Level Security, storage isolation, the freemium cap) is
@@ -122,9 +167,13 @@ src/
   theme/        Design tokens
   types/        Shared TS types (incl. the AI extraction schema)
 supabase/
-  migrations/   SQL schema + RLS + pg_cron
+  migrations/   SQL schema + RLS + pg_cron + the AI tables and search functions
   functions/    Edge Functions: extract-receipt, send-reminders
-docs/           Product, architecture and roadmap docs
+services/ai/    Document assistant: FastAPI, LangChain, LangGraph, pgvector
+  app/          service code (ingest, rag, graph, routers)
+  eval/         synthetic corpus, labelled questions, evaluation script
+  tests/        behaviour tests against real Postgres and real RLS
+docs/           Product, architecture, roadmap, and the three AI docs
 ```
 
 ## Scripts
@@ -145,6 +194,12 @@ docs/           Product, architecture and roadmap docs
 | `npm test`               | Run unit tests                                      |
 | `npm run typecheck`      | `tsc --noEmit`                                      |
 | `npm run lint`           | `expo lint`                                         |
+| `npm run ai:serve`       | Run the document-assistant API (services/ai)        |
+| `npm run ai:worker`      | Run the document indexing worker                    |
+| `npm run ai:preflight`   | Check AI keys, models and schema before demoing      |
+| `npm run ai:test`        | Document-assistant tests (real Postgres + pgvector)  |
+| `npm run ai:eval`        | Retrieval and answering evaluation                  |
+| `npm run ai:walkthrough` | Print the whole document flow end to end            |
 
 > After changing anything in `supabase/migrations/`, run `npm run db:reset && npm run db:types`
 > so the generated types stay in sync with the schema.
