@@ -11,6 +11,7 @@
     "expo-camera": "~57.0.3",
     "expo-constants": "~57.0.7",
     "expo-device": "~57.0.1",
+    "expo-document-picker": "~57.0.2",
     "expo-image-manipulator": "~57.0.6",
     "expo-image-picker": "~57.0.6",
     "expo-linking": "~57.0.4",
@@ -53,7 +54,13 @@
     "verify:extract-fn": "node scripts/verify-extract-fn.mjs",
     "fn:serve": "npx supabase functions serve --env-file supabase/.env",
     "verify:reminders": "node scripts/verify-reminders.mjs",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "ai:serve": "cd services/ai && .venv/bin/python -m uvicorn app.main:app --port 8000 --reload",
+    "ai:worker": "cd services/ai && .venv/bin/python -m app.ingest.worker",
+    "ai:test": "cd services/ai && .venv/bin/python -m pytest",
+    "ai:preflight": "cd services/ai && .venv/bin/python scripts/preflight.py",
+    "ai:eval": "cd services/ai && .venv/bin/python -m eval.run_eval --answers",
+    "ai:walkthrough": "cd services/ai && .venv/bin/python scripts/demo_walkthrough.py"
   },
   "private": true
 }

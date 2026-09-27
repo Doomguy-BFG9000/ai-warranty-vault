@@ -62,6 +62,26 @@ function RootNavigator() {
           name="product/edit/[id]"
           options={{ title: 'Edit details', headerBackTitle: 'Back' }}
         />
+        <Stack.Screen
+          name="product/documents/[id]"
+          options={{ title: 'Documents', headerBackTitle: 'Product' }}
+        />
+        <Stack.Screen
+          name="product/ask/[id]"
+          options={{ title: 'Ask', headerBackTitle: 'Product' }}
+        />
+        {/*
+          A cited source is reachable from a chat message, a search result and a
+          draft, so it is a top-level route rather than nested under any of them.
+        */}
+        <Stack.Screen
+          name="document/[id]"
+          options={{ title: 'Source', headerBackTitle: 'Back' }}
+        />
+        <Stack.Screen
+          name="claim/[threadId]"
+          options={{ title: 'Service request', presentation: 'modal' }}
+        />
       </Stack.Protected>
 
       <Stack.Protected guard={!isSignedIn}>

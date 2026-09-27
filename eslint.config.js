@@ -13,6 +13,10 @@ module.exports = defineConfig([
       'supabase/functions/*',
       // Generated or tool-owned, not source we maintain.
       'supabase/.temp/*',
+      // The Python service: its own toolchain, and a virtualenv full of vendored
+      // JavaScript that has nothing to do with this app.
+      'services/ai/.venv/*',
+      'services/ai/**/__pycache__/*',
       '.expo/*',
       'ios/*',
       'android/*',

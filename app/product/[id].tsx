@@ -109,6 +109,13 @@ export default function ProductDetailScreen() {
 
       <View style={styles.actions}>
         <Button
+          label="Documents & questions"
+          onPress={() =>
+            router.push({ pathname: '/product/documents/[id]', params: { id: product.id } })
+          }
+          disabled={deleting}
+        />
+        <Button
           label="Edit details"
           variant="secondary"
           onPress={() =>
