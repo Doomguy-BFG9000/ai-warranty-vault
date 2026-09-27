@@ -35,6 +35,14 @@ yarn-error.*
 .env*.local
 supabase/.env
 supabase/.temp/
+services/ai/.env
+
+# Python service
+services/ai/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 
 # editor / OS
 .idea/
