@@ -27,22 +27,61 @@ few more tables.
 cd services/ai
 python -m venv .venv
 .venv/bin/pip install -r requirements.lock.txt   # exact, reproducible
-cp .env.example .env                             # then fill it in
+cp .env.example .env
 ```
 
 `requirements.txt` is the human-edited list of direct dependencies;
 `requirements.lock.txt` is the resolved set the tests were verified against.
 
+`.env.example` documents every setting, but almost all of them have working defaults in
+`app/config.py` — a real `.env` needs only the values that have none:
+
+```bash
+DATABASE_URL=                 # local stack: already correct by default
+SUPABASE_URL=                 # local stack: already correct by default
+SUPABASE_SERVICE_ROLE_KEY=    # `npx supabase start` prints it
+SUPABASE_JWT_SECRET=          # `npx supabase status` prints it (see note below)
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+```
+
+Against a hosted project all six come from the dashboard; the header of
+`.env.example` says which page each one is on. `SUPABASE_JWT_SECRET` is only needed
+when the project shows a symmetric JWT secret — newer projects use asymmetric signing
+keys, and leaving it unset makes the service verify tokens against the project's JWKS
+endpoint instead.
+
 ## Apply the migrations
 
 The AI tables live in the project's normal Supabase migrations, so they go out the
-normal way:
+normal way.
+
+**Local stack** (needs Docker running):
 
 ```bash
 cd ../..                 # repo root
 npx supabase start       # if it is not already running
 npx supabase db reset    # applies every migration, including the AI ones
 ```
+
+**Hosted project** (no Docker needed):
+
+```bash
+cd ../..
+npx supabase login
+npx supabase link --project-ref <ref>     # the ref is in the dashboard URL
+npx supabase db push                      # NOT `db reset` — that would wipe the project
+npx supabase gen types typescript --linked > src/types/database.ts
+npx supabase migration list               # confirm the four 20260927* rows landed
+```
+
+If `db push` cannot create the `vector` extension, enable it in
+Dashboard → Database → Extensions and push again.
+
+> **Never point the test suite or the evaluation at a hosted project.** Both reset the
+> `public`, `auth` and `storage` schemas by design, which on a real project means
+> deleting its data. They need a local Postgres — either the Supabase stack, or
+> `brew install postgresql@16 pgvector` — and `TEST_ADMIN_DATABASE_URL` pointed at it.
 
 ## Run it
 
