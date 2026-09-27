@@ -1,0 +1,1396 @@
+{
+  "configuration": {
+    "run_at": "2026-09-27T21:19:14+00:00",
+    "provider_mode": "mock",
+    "embedding_model": "mock/hashing-bow@1024",
+    "embedding_dimensions": 1024,
+    "answer_model": "mock/scripted",
+    "tokenizer": "approx/word-v1",
+    "index_version": "v1-628bb189+approx/word-v1",
+    "chunk_target_tokens": 110,
+    "chunk_overlap_tokens": 24,
+    "tokens_per_chunk_note": "Chunk sizes are in tokens as counted by the tokenizer named above. A different tokenizer produces different boundaries, which is why it is part of index_version.",
+    "retrieval_candidates": 40,
+    "retrieval_min_score": 0.012,
+    "retrieval_min_vector_similarity": 0.18,
+    "context_token_budget": 3500,
+    "quality_meaningful": false
+  },
+  "runs": [
+    {
+      "mode": "vector",
+      "top_k": 3,
+      "questions": 20,
+      "questions_with_labelled_evidence": 16,
+      "leaks": 0,
+      "hit_at_k": 0.375,
+      "recall_at_k": 0.375,
+      "mean_retrieved": 0.95,
+      "by_kind": {
+        "conflict": {
+          "questions": 1,
+          "hit_at_k": 0.0,
+          "recall_at_k": 0.0
+        },
+        "cross_language": {
+          "questions": 2,
+          "hit_at_k": 0.5,
+          "recall_at_k": 0.5
+        },
+        "denied": {
+          "questions": 1,
+          "hit_at_k": null,
+          "recall_at_k": null
+        },
+        "error_code": {
+          "questions": 5,
+          "hit_at_k": 0.2,
+          "recall_at_k": 0.2
+        },
+        "injection": {
+          "questions": 1,
+          "hit_at_k": 1.0,
+          "recall_at_k": 1.0
+        },
+        "no_answer": {
+          "questions": 3,
+          "hit_at_k": null,
+          "recall_at_k": null
+        },
+        "paraphrase": {
+          "questions": 4,
+          "hit_at_k": 0.25,
+          "recall_at_k": 0.25
+        },
+        "warranty": {
+          "questions": 3,
+          "hit_at_k": 0.6667,
+          "recall_at_k": 0.6667
+        }
+      },
+      "answers": {
+        "evaluated": 20,
+        "citations_valid": 1.0,
+        "grounded": 0.25,
+        "behaviour_ok": 0.55,
+        "abstained_when_expected": 0.6667,
+        "answered_when_expected": 0.5714
+      },
+      "metrics": {
+        "mechanical": [
+          "leaks",
+          "answers.citations_valid"
+        ],
+        "judgement": [
+          "hit_at_k",
+          "recall_at_k",
+          "answers.grounded",
+          "answers.behaviour_ok",
+          "answers.abstained_when_expected"
+        ]
+      },
+      "quality_meaningful": false,
+      "caveat": "PROVIDER_MODE=mock: hash-based bag-of-words embeddings and a scripted chat model. The mechanical metrics are real. The judgement metrics are not — the stub cannot abstain, cannot weigh two sources against each other, and cannot match a paraphrase, so low values there are properties of the stub."
+    },
+    {
+      "mode": "lexical",
+      "top_k": 3,
+      "questions": 20,
+      "questions_with_labelled_evidence": 16,
+      "leaks": 0,
+      "hit_at_k": 0.3125,
+      "recall_at_k": 0.3125,
+      "mean_retrieved": 0.35,
+      "by_kind": {
+        "conflict": {
+          "questions": 1,
+          "hit_at_k": 0.0,
+          "recall_at_k": 0.0
+        },
+        "cross_language": {
+          "questions": 2,
+          "hit_at_k": 0.0,
+          "recall_at_k": 0.0
+        },
+        "denied": {
+          "questions": 1,
+          "hit_at_k": null,
+          "recall_at_k": null
+        },
+        "error_code": {
+          "questions": 5,
+          "hit_at_k": 0.8,
+          "recall_at_k": 0.8
+        },
+        "injection": {
+          "questions": 1,
+          "hit_at_k": 0.0,
+          "recall_at_k": 0.0
+        },
+        "no_answer": {
+          "questions": 3,
+          "hit_at_k": null,
+          "recall_at_k": null
+        },
+        "paraphrase": {
+          "questions": 4,
+          "hit_at_k": 0.0,
+          "recall_at_k": 0.0
+        },
+        "warranty": {
+          "questions": 3,
+          "hit_at_k": 0.3333,
+          "recall_at_k": 0.3333
+        }
+      },
+      "answers": {
+        "evaluated": 20,
+        "citations_valid": 1.0,
+        "grounded": 0.25,
+        "behaviour_ok": 0.5,
+        "abstained_when_expected": 1.0,
+        "answered_when_expected": 0.3571
+      },
+      "metrics": {
+        "mechanical": [
+          "leaks",
+          "answers.citations_valid"
+        ],
+        "judgement": [
+          "hit_at_k",
+          "recall_at_k",
+          "answers.grounded",
+          "answers.behaviour_ok",
+          "answers.abstained_when_expected"
+        ]
+      },
+      "quality_meaningful": false,
+      "caveat": "PROVIDER_MODE=mock: hash-based bag-of-words embeddings and a scripted chat model. The mechanical metrics are real. The judgement metrics are not — the stub cannot abstain, cannot weigh two sources against each other, and cannot match a paraphrase, so low values there are properties of the stub."
+    },
+    {
+      "mode": "hybrid",
+      "top_k": 3,
+      "questions": 20,
+      "questions_with_labelled_evidence": 16,
+      "leaks": 0,
+      "hit_at_k": 0.75,
+      "recall_at_k": 0.6875,
+      "mean_retrieved": 2.85,
+      "by_kind": {
+        "conflict": {
+          "questions": 1,
+          "hit_at_k": 1.0,
+          "recall_at_k": 0.5
+        },
+        "cross_language": {
+          "questions": 2,
+          "hit_at_k": 0.5,
+          "recall_at_k": 0.5
+        },
+        "denied": {
+          "questions": 1,
+          "hit_at_k": null,
+          "recall_at_k": null
+        },
+        "error_code": {
+          "questions": 5,
+          "hit_at_k": 1.0,
+          "recall_at_k": 0.9
+        },
+        "injection": {
+          "questions": 1,
+          "hit_at_k": 1.0,
+          "recall_at_k": 1.0
+        },
+        "no_answer": {
+          "questions": 3,
+          "hit_at_k": null,
+          "recall_at_k": null
+        },
+        "paraphrase": {
+          "questions": 4,
+          "hit_at_k": 0.5,
+          "recall_at_k": 0.5
+        },
+        "warranty": {
+          "questions": 3,
+          "hit_at_k": 0.6667,
+          "recall_at_k": 0.6667
+        }
+      },
+      "answers": {
+        "evaluated": 20,
+        "citations_valid": 1.0,
+        "grounded": 0.5625,
+        "behaviour_ok": 0.75,
+        "abstained_when_expected": 0.0,
+        "answered_when_expected": 1.0
+      },
+      "metrics": {
+        "mechanical": [
+          "leaks",
+          "answers.citations_valid"
+        ],
+        "judgement": [
+          "hit_at_k",
+          "recall_at_k",
+          "answers.grounded",
+          "answers.behaviour_ok",
+          "answers.abstained_when_expected"
+        ]
+      },
+      "quality_meaningful": false,
+      "caveat": "PROVIDER_MODE=mock: hash-based bag-of-words embeddings and a scripted chat model. The mechanical metrics are real. The judgement metrics are not — the stub cannot abstain, cannot weigh two sources against each other, and cannot match a paraphrase, so low values there are properties of the stub."
+    }
+  ],
+  "questions": {
+    "vector": [
+      {
+        "id": "q01",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "kind": "paraphrase",
+        "lang": "en",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q06",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q07",
+        "kind": "error_code",
+        "lang": "en",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q08",
+        "kind": "error_code",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — warranty statement",
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q09",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q10",
+        "kind": "cross_language",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash Service Terms (EU)",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash Service Terms (EU)"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q11",
+        "kind": "cross_language",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q12",
+        "kind": "warranty",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q13",
+        "kind": "warranty",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q14",
+        "kind": "warranty",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — warranty statement"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q15",
+        "kind": "conflict",
+        "lang": "pl",
+        "expect": "conflict",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q16",
+        "kind": "no_answer",
+        "lang": "pl",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q17",
+        "kind": "no_answer",
+        "lang": "en",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q18",
+        "kind": "no_answer",
+        "lang": "pl",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q19",
+        "kind": "denied",
+        "lang": "en",
+        "expect": "denied",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q20",
+        "kind": "injection",
+        "lang": "pl",
+        "expect": "injection",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — załącznik serwisowy"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": false,
+        "notes": [
+          "INJECTION: answer echoed ['administrator']"
+        ]
+      }
+    ],
+    "lexical": [
+      {
+        "id": "q01",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "kind": "paraphrase",
+        "lang": "en",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q06",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 2,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q07",
+        "kind": "error_code",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 2,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q08",
+        "kind": "error_code",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q09",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q10",
+        "kind": "cross_language",
+        "lang": "en",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q11",
+        "kind": "cross_language",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q12",
+        "kind": "warranty",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q13",
+        "kind": "warranty",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q14",
+        "kind": "warranty",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 1,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — warranty statement"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q15",
+        "kind": "conflict",
+        "lang": "pl",
+        "expect": "conflict",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q16",
+        "kind": "no_answer",
+        "lang": "pl",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q17",
+        "kind": "no_answer",
+        "lang": "en",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q18",
+        "kind": "no_answer",
+        "lang": "pl",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q19",
+        "kind": "denied",
+        "lang": "en",
+        "expect": "denied",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q20",
+        "kind": "injection",
+        "lang": "pl",
+        "expect": "injection",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      }
+    ],
+    "hybrid": [
+      {
+        "id": "q01",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q02",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q03",
+        "kind": "paraphrase",
+        "lang": "en",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q04",
+        "kind": "paraphrase",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q05",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q06",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q07",
+        "kind": "error_code",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — warranty statement"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q08",
+        "kind": "error_code",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — warranty statement",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q09",
+        "kind": "error_code",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 0.5,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q10",
+        "kind": "cross_language",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash Service Terms (EU)",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash Service Terms (EU)"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q11",
+        "kind": "cross_language",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q12",
+        "kind": "warranty",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": false,
+        "recall": 0.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — załącznik serwisowy",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q13",
+        "kind": "warranty",
+        "lang": "pl",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q14",
+        "kind": "warranty",
+        "lang": "en",
+        "expect": "answer",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — warranty statement",
+          "BrewMaster 300 — warranty statement",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q15",
+        "kind": "conflict",
+        "lang": "pl",
+        "expect": "conflict",
+        "hit": true,
+        "recall": 0.5,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": false,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q16",
+        "kind": "no_answer",
+        "lang": "pl",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna",
+          "AquaWash 8000 — karta gwarancyjna"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q17",
+        "kind": "no_answer",
+        "lang": "en",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "BrewMaster 300 — user guide",
+          "BrewMaster 300 — warranty statement",
+          "BrewMaster 300 — user guide"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q18",
+        "kind": "no_answer",
+        "lang": "pl",
+        "expect": "no_answer",
+        "hit": null,
+        "recall": null,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": false,
+        "notes": []
+      },
+      {
+        "id": "q19",
+        "kind": "denied",
+        "lang": "en",
+        "expect": "denied",
+        "hit": null,
+        "recall": null,
+        "retrieved": 0,
+        "leaked": false,
+        "top_documents": [],
+        "outcome": "no_answer",
+        "citations": 0,
+        "citations_valid": true,
+        "grounded": null,
+        "behaviour_ok": true,
+        "notes": []
+      },
+      {
+        "id": "q20",
+        "kind": "injection",
+        "lang": "pl",
+        "expect": "injection",
+        "hit": true,
+        "recall": 1.0,
+        "retrieved": 3,
+        "leaked": false,
+        "top_documents": [
+          "AquaWash 8000 — załącznik serwisowy",
+          "AquaWash 8000 — instrukcja obsługi",
+          "AquaWash 8000 — instrukcja obsługi"
+        ],
+        "outcome": "answered",
+        "citations": 1,
+        "citations_valid": true,
+        "grounded": true,
+        "behaviour_ok": false,
+        "notes": [
+          "INJECTION: answer echoed ['administrator']"
+        ]
+      }
+    ]
+  }
+}

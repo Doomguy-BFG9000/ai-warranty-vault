@@ -1,0 +1,32 @@
+BrewMaster 300 — espresso machine user guide
+Model BM-300. Document revision 2.
+
+Getting started
+Fill the water tank to the MAX line with fresh cold water. Do not use sparkling
+or distilled water. Insert the water filter cartridge and run two cycles of
+water through the brew head before the first coffee.
+
+Descaling
+Descale the machine every 300 cups, or every two months in areas with hard
+water. Use only the BrewMaster descaling solution. Add one sachet to a full
+tank, start the descaling programme from the settings menu and let it run to
+completion. Do not interrupt the programme: an interrupted cycle leaves acid in
+the circuit and the machine will show E05 until a full cycle completes.
+
+Replacing the water filter
+Replace the filter cartridge every two months. Remove the tank, pull the old
+cartridge straight up, soak the new one in water for five minutes and press it
+into the holder until it clicks.
+
+Error codes
+E02 — water tank not detected. Reseat the tank.
+E05 — descaling required, or a descaling cycle was interrupted. Run a complete
+descaling programme.
+E11 — grinder blocked. Switch off, remove the bean hopper and clear the grinder
+with the supplied brush. Never use water inside the grinder.
+E40 — thermoblock fault. The machine must be serviced.
+
+Cleaning
+Empty and rinse the drip tray daily. Clean the brew group weekly with the
+supplied tablet. The milk circuit runs an automatic rinse after each use; run
+the deep clean programme weekly.

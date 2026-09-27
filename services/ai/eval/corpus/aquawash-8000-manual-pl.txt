@@ -1,0 +1,41 @@
+AquaWash 8000 — instrukcja obsługi pralki automatycznej
+Model: AW-8000-XL. Wersja dokumentu 3.1.
+
+1. Instalacja
+Pralkę należy ustawić na twardym, równym podłożu. Przed pierwszym praniem usuń
+cztery śruby transportowe z tyłu obudowy i zaślep otwory zatyczkami dołączonymi
+do zestawu. Wąż doprowadzający wodę podłącz do zaworu z gwintem 3/4 cala.
+Maksymalne ciśnienie wody wynosi 1,0 MPa, minimalne 0,05 MPa.
+
+2. Czyszczenie filtra pompy
+Filtr pompy znajduje się za dolną klapką serwisową z przodu urządzenia, po
+prawej stronie. Przed czyszczeniem odłącz pralkę od zasilania i zamknij zawór
+wody. Otwórz klapkę, podstaw płaskie naczynie i powoli odkręć korek filtra, aby
+spuścić pozostałą wodę. Wyjmij wkład filtra, usuń zanieczyszczenia i włókna pod
+bieżącą wodą, a następnie wkręć korek z powrotem do oporu. Zalecamy czyszczenie
+filtra raz na dwa miesiące, a przy praniu odzieży mocno pylącej raz na miesiąc.
+
+3. Czyszczenie szuflady na detergent
+Szufladę wyjmij, naciskając zatrzask w przegrodzie na płyn do płukania. Umyj ją
+w ciepłej wodzie z dodatkiem płynu do naczyń. Nie używaj środków ściernych.
+
+4. Kody błędów
+E17 — problem z odprowadzaniem wody. Sprawdź filtr pompy oraz wąż odpływowy;
+upewnij się, że wąż nie jest zagięty i nie znajduje się wyżej niż 100 cm nad
+podłogą. Jeżeli kod pojawia się ponownie po wyczyszczeniu filtra, skontaktuj się
+z autoryzowanym serwisem.
+E23 — zablokowany zamek drzwi. Otwórz i domknij drzwi, sprawdź, czy nie blokuje
+ich pranie. Jeżeli kod nie zniknie, wyłącz pralkę na 5 minut i uruchom ponownie.
+E31 — brak dopływu wody. Sprawdź, czy zawór jest otwarty i czy siatka filtra na
+wężu doprowadzającym nie jest zapchana.
+F02 — usterka silnika. Wymaga interwencji serwisu; nie podejmuj samodzielnych
+napraw.
+
+5. Konserwacja
+Raz na trzy miesiące uruchom program czyszczenia bębna w temperaturze 90 stopni
+bez wsadu i bez detergentu. Uszczelkę drzwi przetrzyj wilgotną szmatką po każdym
+praniu i pozostaw drzwi uchylone do wyschnięcia bębna.
+
+6. Dane techniczne
+Napięcie zasilania 220-240 V, 50 Hz. Moc maksymalna 2100 W. Maksymalna prędkość
+wirowania 1400 obrotów na minutę. Pojemność wsadu 9 kg. Masa urządzenia 71 kg.
