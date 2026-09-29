@@ -244,6 +244,7 @@ def build_tools(
                 top_k=settings.retrieval_top_k,
                 mode=settings.retrieval_mode,
                 candidate_count=settings.retrieval_candidates,
+                per_document_limit=settings.retrieval_per_document,
                 index_version=index_version,
             )
 

@@ -163,3 +163,104 @@ def _index_version(settings):
     from app.ingest.indexer import index_version_for
 
     return index_version_for(settings)
+
+
+# ── the per-document cap ────────────────────────────────────────────────────
+@pytest.fixture(scope="session")
+async def crowded_subject(db, settings, embeddings, telemetry, store, alice, corpus):
+    """One long document that dominates a subject, and one short one that disagrees.
+
+    This is the shape that produced the live defect: the warranty card had several
+    passages about the power cable, the service terms had one, and the one never
+    reached the model — so a contradiction was reported as a settled answer.
+    """
+    from tests.helpers import seed_indexed_document
+
+    long_id = await seed_indexed_document(
+        db=db, settings=settings, embeddings=embeddings, telemetry=telemetry, store=store,
+        user_id=alice.user_id, product_id=alice.product_id,
+        title="Karta gwarancyjna CABLE", kind="warranty_card",
+        text=" ".join(
+            [
+                "Gwarancja nie obejmuje przewodu zasilajacego CABLETEST w tym urzadzeniu.",
+                "Przewod zasilajacy CABLETEST jest czescia eksploatacyjna i nie podlega gwarancji.",
+                "Uszkodzenie przewodu zasilajacego CABLETEST wyklucza naprawe gwarancyjna.",
+                "Wymiana przewodu zasilajacego CABLETEST jest zawsze odplatna.",
+                "Przewod zasilajacy CABLETEST nalezy wymieniac w autoryzowanym serwisie.",
+            ]
+        ),
+        filename="cable-warranty.txt",
+    )
+    short_id = await seed_indexed_document(
+        db=db, settings=settings, embeddings=embeddings, telemetry=telemetry, store=store,
+        user_id=alice.user_id, product_id=alice.product_id,
+        title="Service Terms CABLE", kind="service_terms",
+        text="Przewod zasilajacy CABLETEST objety jest gwarancja przez 12 miesiecy.",
+        filename="cable-terms.txt",
+    )
+    return long_id, short_id
+
+
+async def test_without_the_cap_one_document_can_take_every_slot(
+    db, embeddings, settings, alice, crowded_subject
+):
+    """The starvation condition, on real SQL.
+
+    Mock embeddings are bag-of-words, so this does not reproduce the live ranking —
+    what it does show is the mechanism behind it: a document with several passages on
+    the subject fills a short top-k by itself, and whatever another document says is
+    simply not in the list the model sees. The effect on answer quality is measured
+    in `eval/`, not asserted here.
+    """
+    hits = await _search(
+        db, embeddings, alice, "CABLETEST",
+        index_version=_index_version(settings), top_k=2, per_document_limit=None,
+    )
+    long_id, short_id = crowded_subject
+    documents = [hit.document_id for hit in hits]
+    assert documents == [long_id, long_id]
+    assert short_id not in documents
+
+
+async def test_the_cap_admits_a_document_the_uncapped_top_k_left_out(
+    db, embeddings, settings, alice, crowded_subject
+):
+    long_id, short_id = crowded_subject
+    hits = await _search(
+        db, embeddings, alice, "CABLETEST",
+        index_version=_index_version(settings), top_k=2, per_document_limit=1,
+    )
+    documents = [hit.document_id for hit in hits]
+    assert documents.count(long_id) == 1
+    assert short_id in documents, "the document that disagrees now reaches the model"
+
+
+async def test_the_cap_is_enforced_inside_the_top_k_not_after_it(
+    db, embeddings, settings, alice, crowded_subject
+):
+    """Trimming after the limit would return fewer rows; capping returns as many."""
+    kwargs = dict(index_version=_index_version(settings), top_k=4)
+    uncapped = await _search(db, embeddings, alice, "CABLETEST", per_document_limit=None, **kwargs)
+    capped = await _search(db, embeddings, alice, "CABLETEST", per_document_limit=1, **kwargs)
+    assert len(capped) == len(uncapped)
+    assert len(set(hit.document_id for hit in capped)) == len(capped)
+
+
+async def test_the_cap_does_not_cost_a_document_its_own_chunks_when_it_is_alone(
+    db, embeddings, settings, corpus, alice
+):
+    """A cap is a per-document limit, not a global one.
+
+    A question only one document can answer must still get several passages from it,
+    up to the cap — the fix must not turn a focused search into a shallow one.
+    """
+    hits = await _search(
+        db, embeddings, alice, "E17 filtr pompy",
+        index_version=_index_version(settings), top_k=8, per_document_limit=3,
+    )
+    assert hits
+    counts: dict = {}
+    for hit in hits:
+        counts[hit.document_id] = counts.get(hit.document_id, 0) + 1
+    assert max(counts.values()) <= 3
+    assert max(counts.values()) > 1, "a relevant document should still contribute more than one passage"

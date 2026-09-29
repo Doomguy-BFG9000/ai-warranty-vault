@@ -53,6 +53,7 @@ async def search(
                 top_k=top_k,
                 mode=mode,
                 candidate_count=settings.retrieval_candidates,
+                per_document_limit=settings.retrieval_per_document,
                 index_version=services.index_version,
             )
             stage.detail["hits"] = len(hits)

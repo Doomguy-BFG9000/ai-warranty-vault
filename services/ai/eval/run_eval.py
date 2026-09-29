@@ -120,6 +120,7 @@ async def _retrieve(
             mode=mode,
             candidate_count=settings.retrieval_candidates,
             index_version=index_version,
+            per_document_limit=settings.retrieval_per_document,
         )
     return fit_context(
         apply_relevance_floor(hits, settings, mode=mode), settings.context_token_budget
@@ -330,6 +331,7 @@ def configuration(settings: Settings, embeddings) -> dict[str, Any]:
             "tokenizer produces different boundaries, which is why it is part of index_version."
         ),
         "retrieval_candidates": settings.retrieval_candidates,
+        "retrieval_per_document": settings.retrieval_per_document,
         "retrieval_min_score": settings.retrieval_min_score,
         "retrieval_min_vector_similarity": settings.retrieval_min_vector_similarity,
         "context_token_budget": settings.context_token_budget,

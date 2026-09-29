@@ -129,6 +129,10 @@ class Settings(BaseSettings):
     # ── retrieval ───────────────────────────────────────────────────────────
     retrieval_top_k: int = 8
     retrieval_candidates: int = 40
+    # At most this many chunks from any one document, so a long document cannot
+    # take every slot and hide a second document that disagrees with it. 0 or
+    # None disables the cap, which is how the eval measures what it costs.
+    retrieval_per_document: int = 3
     retrieval_mode: Literal["vector", "lexical", "hybrid"] = "hybrid"
     # A floor on the fused score, calibrated against eval/questions.yaml rather
     # than guessed. It is a filter on obvious noise, not a confidence estimate:

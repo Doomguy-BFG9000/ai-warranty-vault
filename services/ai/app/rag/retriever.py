@@ -82,7 +82,8 @@ from public.search_document_chunks(
        %(match_count)s::int,
        %(mode)s::text,
        %(candidate_count)s::int,
-       %(index_version)s::text
+       %(index_version)s::text,
+       %(per_document_limit)s::int
      ) s
 join public.product_documents d on d.id = s.document_id
 order by s.score desc nulls last
@@ -100,6 +101,7 @@ async def search_chunks(
     mode: SearchMode = "hybrid",
     candidate_count: int = 40,
     index_version: str | None = None,
+    per_document_limit: int | None = None,
 ) -> list[RetrievedChunk]:
     """Run the owner-scoped search. `conn` must already be in a user scope."""
     rows = await fetch_all(
@@ -114,6 +116,7 @@ async def search_chunks(
             "mode": mode,
             "candidate_count": candidate_count,
             "index_version": index_version,
+            "per_document_limit": per_document_limit,
         },
     )
     return [
@@ -213,6 +216,7 @@ class ProductDocumentRetriever(BaseRetriever):
                 top_k=top_k,
                 mode=self.mode,
                 candidate_count=self.settings.retrieval_candidates,
+                per_document_limit=self.settings.retrieval_per_document,
                 index_version=self.index_version,
             )
 

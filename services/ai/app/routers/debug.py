@@ -61,6 +61,7 @@ async def compare_retrieval(
                 top_k=top_k,
                 mode=mode,
                 candidate_count=services.settings.retrieval_candidates,
+                per_document_limit=services.settings.retrieval_per_document,
                 index_version=services.index_version,
             )
             out["modes"][mode] = [
