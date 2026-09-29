@@ -225,6 +225,17 @@ adds no vendor. Every model name is an environment variable, and
 `scripts/preflight.py` makes one real call per configured model, because an identifier
 that was current when this was written is not evidence that a given key can reach it.
 
+**No `temperature`, and that is not an oversight.** This model generation removed the
+sampling parameters: `temperature`, `top_p` and `top_k` each return
+`400 temperature is deprecated for this model`. Depth is controlled by
+`output_config.effort` instead — `MODEL_EFFORT` (default `medium`) for answering,
+routing and drafting, and `VISION_EFFORT` (default `low`) for transcription, which is
+mechanical work on the expensive path. This cost the service its first real API call:
+`temperature=0.0` was set on the reasoning that grounded extraction wants no sampling
+variety, which was true and irrelevant. `tests/test_providers.py` now inspects the
+built request body, because a mocked model ignores every parameter and so can never
+catch this class of mistake.
+
 **Never mixing spaces.** Each chunk records `embedding_model`, `embedding_dim` and
 `index_version`; search filters on the active version; a document indexed under an older
 one is shown in the app as "needs reindexing" rather than as ready, because its chunks

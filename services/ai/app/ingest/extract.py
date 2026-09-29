@@ -358,7 +358,11 @@ async def _invoke_transcription(vision_model, content: list[dict]) -> dict:
     try:
         result = await structured.ainvoke(messages)
     except Exception as exc:  # noqa: BLE001 - normalised for the worker's retry policy
-        raise ProviderError(f"vision transcription failed: {type(exc).__name__}") from exc
+        from app.providers import describe_provider_failure
+
+        raise ProviderError(
+            f"vision transcription failed: {describe_provider_failure(exc)}"
+        ) from exc
     if not isinstance(result, dict):
         raise ProviderError("vision transcription returned an unexpected shape", retryable=False)
     return result

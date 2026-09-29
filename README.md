@@ -88,7 +88,7 @@ npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 The model defaults to `claude-opus-5`. Extraction is a short, high-volume call, so
-set `CLAUDE_MODEL` (e.g. `claude-sonnet-5`) if cost per receipt matters more than
+set `CLAUDE_MODEL` (e.g. `claude-sonnet-5-5`) if cost per receipt matters more than
 accuracy — no code change required.
 
 The function downloads the receipt **as the calling user**, so Storage RLS decides

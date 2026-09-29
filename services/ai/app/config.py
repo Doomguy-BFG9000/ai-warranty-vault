@@ -90,13 +90,30 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
 
     # ── generation ──────────────────────────────────────────────────────────
-    # Claude for answering and for reading scans. The project already depends on
-    # Anthropic for receipt vision, so this adds no new vendor, and the same
-    # model family handles grounded synthesis and tool selection.
+    # Claude for answering, tool selection and reading scans. The project already
+    # depends on Anthropic for receipt vision, so this adds no new vendor.
+    #
+    # Note for anyone reaching for `temperature`: this model generation removed it.
+    # Sending `temperature` (or `top_p` / `top_k`) returns a 400. Depth and token
+    # spend are controlled by `effort` instead, which is what the two settings
+    # below are for. Determinism is not on offer, and asking for it by setting
+    # temperature=0 is how this service first failed against the real API.
     anthropic_api_key: str | None = None
-    answer_model: str = "claude-sonnet-5"
-    vision_model: str = "claude-sonnet-5"
-    answer_max_tokens: int = 2048
+    answer_model: str = "claude-opus-5-5"
+    vision_model: str = "claude-opus-5-5"
+
+    # Answering, routing and drafting. `medium` is the model's own default and is
+    # ample for synthesis over a few thousand tokens of retrieved text; raise it if
+    # answers look shallow, lower it to cut cost.
+    model_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
+    # Transcription is mechanical: read what is printed, change nothing. Low effort
+    # is both the right depth and the cheaper one, and this is the expensive path —
+    # one call per few pages.
+    vision_effort: Literal["low", "medium", "high", "xhigh", "max"] = "low"
+
+    # Generous on purpose. Thinking tokens count against this ceiling, so a tight
+    # limit truncates an answer mid-sentence and costs a retry.
+    answer_max_tokens: int = 16_000
     model_timeout_seconds: float = 60.0
     model_max_retries: int = 2
 

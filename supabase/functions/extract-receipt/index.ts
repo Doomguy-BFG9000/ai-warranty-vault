@@ -21,7 +21,7 @@ const RECEIPTS_BUCKET = 'receipts';
 /**
  * Claude Opus 5 is the default. Extraction is a short, high-volume call, so if
  * cost per receipt matters more than accuracy, set CLAUDE_MODEL to a cheaper
- * model (e.g. claude-sonnet-5) without touching this code.
+ * model (e.g. claude-sonnet-5-5) without touching this code.
  */
 const MODEL = Deno.env.get('CLAUDE_MODEL') ?? 'claude-opus-5';
 

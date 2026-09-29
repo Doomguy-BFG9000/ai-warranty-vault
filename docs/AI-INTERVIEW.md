@@ -400,9 +400,14 @@ mock runs.
 
 Say this plainly if asked. It is a much better answer than implying otherwise.
 
-- **No live provider call has been made in this repository.** The wiring is complete and
-  the library APIs were verified against the installed versions, but every test and every
-  evaluation run used mock providers. No retrieval-quality number here is real.
+- **Almost no live provider call has been made.** The first one that was attempted found
+  a real bug — `temperature=0.0`, removed in this model generation, 400 on every
+  request — which is now fixed and covered by `tests/test_providers.py`. Beyond that
+  one attempt, every test and every evaluation run used mock providers, so no
+  retrieval-quality number here is real. The lesson generalises: a mocked model ignores
+  every request parameter, so no amount of mock coverage can tell you the request body
+  is acceptable to the API. Checking the built payload is the cheap middle ground, and
+  `scripts/preflight.py` is the expensive one that actually asks.
 - **No UI interaction on a device or simulator.** The bundle builds and the screens
   typecheck and lint clean; nobody has tapped them.
 - **Chunk size, top-k and the relevance floor are reasoned, not tuned.** The corpus is six

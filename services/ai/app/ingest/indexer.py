@@ -140,7 +140,9 @@ async def index_document(
     vision_model = None
     if mime_type != "text/plain":
         try:
-            vision_model = build_chat_model(settings, model=settings.vision_model)
+            vision_model = build_chat_model(
+                settings, model=settings.vision_model, effort=settings.vision_effort
+            )
         except ProviderError:
             # Only actually needed if the PDF turns out to be a scan; leave it
             # None and let the extractor decide whether that is fatal.

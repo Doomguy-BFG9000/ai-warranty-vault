@@ -122,7 +122,24 @@ def build_embeddings(settings: Settings) -> EmbeddingHandle:
     )
 
 
-def build_chat_model(settings: Settings, *, model: str | None = None, max_tokens: int | None = None) -> BaseChatModel:
+def build_chat_model(
+    settings: Settings,
+    *,
+    model: str | None = None,
+    max_tokens: int | None = None,
+    effort: str | None = None,
+) -> BaseChatModel:
+    """A chat model configured for grounded work.
+
+    Deliberately does not set `temperature`, `top_p` or `top_k`. This model
+    generation removed them: sending any of the three returns
+
+        400 invalid_request_error: `temperature` is deprecated for this model.
+
+    Only `claude-fable-5*` is special-cased inside langchain-anthropic, so on every
+    other current model an unwanted `temperature` reaches the API and the whole
+    request fails. Depth is controlled with `output_config.effort` instead.
+    """
     if settings.is_mock:
         from app.mock_chat import ScriptedChatModel
 
@@ -136,19 +153,33 @@ def build_chat_model(settings: Settings, *, model: str | None = None, max_tokens
     return ChatAnthropic(
         model=model or settings.answer_model,
         max_tokens=max_tokens or settings.answer_max_tokens,
-        # Grounded extraction and synthesis; sampling variety is not wanted.
-        temperature=0.0,
+        output_config={"effort": effort or settings.model_effort},
         timeout=settings.model_timeout_seconds,
         max_retries=settings.model_max_retries,
         api_key=settings.anthropic_api_key,
     )
 
 
+def describe_provider_failure(exc: BaseException) -> str:
+    """Exception type plus the provider's own message, trimmed.
+
+    The type alone is not diagnosable: OpenAI raises `RateLimitError` both for "you
+    are going too fast" and for "this key has no credit" (`insufficient_quota`), and
+    those need opposite responses from whoever is reading the log. The provider's
+    message says which, so it is kept — trimmed, because some providers return a
+    whole HTML error page.
+    """
+    detail = str(exc).strip().replace("\n", " ")
+    if not detail:
+        return type(exc).__name__
+    return f"{type(exc).__name__}: {detail[:300]}"
+
+
 async def embed_documents(handle: EmbeddingHandle, texts: list[str]) -> list[list[float]]:
     try:
         vectors = await handle.embeddings.aembed_documents(texts)
     except Exception as exc:  # noqa: BLE001 - normalised into ProviderError
-        raise ProviderError(f"embedding call failed: {type(exc).__name__}") from exc
+        raise ProviderError(f"embedding call failed: {describe_provider_failure(exc)}") from exc
 
     if len(vectors) != len(texts):
         raise ProviderError("embedding provider returned the wrong number of vectors", retryable=False)
@@ -165,7 +196,7 @@ async def embed_query(handle: EmbeddingHandle, text: str) -> list[float]:
     try:
         vector = await handle.embeddings.aembed_query(text)
     except Exception as exc:  # noqa: BLE001
-        raise ProviderError(f"embedding call failed: {type(exc).__name__}") from exc
+        raise ProviderError(f"embedding call failed: {describe_provider_failure(exc)}") from exc
     if len(vector) != handle.dimensions:
         raise ProviderError(
             f"embedding provider returned {len(vector)} dimensions, expected {handle.dimensions}",

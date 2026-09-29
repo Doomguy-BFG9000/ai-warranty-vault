@@ -25,7 +25,12 @@ from app.db import Database, assert_embedding_column_width, fetch_one  # noqa: E
 from app.errors import ProviderError  # noqa: E402
 from app.ingest.indexer import index_version_for  # noqa: E402
 from app.ingest.tokens import tokenizer_id  # noqa: E402
-from app.providers import build_chat_model, build_embeddings, embed_query  # noqa: E402
+from app.providers import (  # noqa: E402
+    build_chat_model,
+    build_embeddings,
+    describe_provider_failure,
+    embed_query,
+)
 
 OK = "  ok   "
 FAIL = " FAIL  "
@@ -41,7 +46,11 @@ async def main() -> int:
     failures = 0
 
     print(f"provider_mode={settings.provider_mode}  index_version={index_version_for(settings)}")
-    print(f"tokenizer={tokenizer_id()}\n")
+    print(f"tokenizer={tokenizer_id()}")
+    print(
+        f"answer={settings.answer_model} effort={settings.model_effort}  "
+        f"vision={settings.vision_model} effort={settings.vision_effort}\n"
+    )
 
     if tokenizer_id().startswith("approx/"):
         line(
@@ -110,17 +119,22 @@ async def main() -> int:
         failures += 1
 
     # ── answering model ─────────────────────────────────────────────────────
-    for label, model in (("answer model", settings.answer_model), ("vision model", settings.vision_model)):
+    for label, model, effort in (
+        ("answer model", settings.answer_model, settings.model_effort),
+        ("vision model", settings.vision_model, settings.vision_effort),
+    ):
         try:
-            chat = build_chat_model(settings, model=model, max_tokens=32)
+            # `low` effort and a small ceiling: this is a liveness check, not work.
+            chat = build_chat_model(settings, model=model, max_tokens=1024, effort="low")
             reply = await chat.ainvoke([{"role": "user", "content": "Reply with the single word: ready"}])
             text = getattr(reply, "text", None)
             preview = (text if isinstance(text, str) else str(reply.content)).strip()[:40]
-            line(OK, label, f"{model} replied {preview!r}")
+            line(OK, label, f"{model} (effort {effort}) replied {preview!r}")
         except Exception as exc:  # noqa: BLE001
-            # The common cause is a model identifier this key cannot reach, which is
-            # exactly what this script exists to surface.
-            line(FAIL, label, f"{model}: {type(exc).__name__}: {exc}")
+            # Usually a model identifier this key cannot reach, or a request
+            # parameter the model no longer accepts. Both are exactly what this
+            # script exists to surface, so the provider's own message is kept.
+            line(FAIL, label, f"{model}: {describe_provider_failure(exc)}")
             failures += 1
 
     print()
