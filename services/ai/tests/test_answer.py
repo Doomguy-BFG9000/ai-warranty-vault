@@ -9,6 +9,7 @@ from app.rag.answer import (
     NO_ANSWER_TEXT,
     compose_answer,
     enforce_grounding,
+    facts_support,
     render_conflict,
     render_facts,
     render_sources,
@@ -127,6 +128,62 @@ def test_claiming_the_product_record_without_one_is_still_ungrounded():
     )
     assert outcome == "no_answer"
     assert used_facts is False
+
+
+def test_a_self_reported_abstention_is_overruled_by_the_facts_in_its_own_text():
+    """The A1 defect, as observed live.
+
+    The model answered "Ile mam jeszcze gwarancji?" correctly — the date came
+    straight from the record it was handed — and then labelled the turn no_answer
+    with used_product_facts false. Believing the label showed the user a real answer
+    under a heading saying nothing was found, and with no "from your saved record"
+    note. The date is the evidence: nothing else in the turn could have produced it.
+    """
+    outcome, answer, citations, used_facts = enforce_grounding(
+        "no_answer",
+        "Gwarancja obowiazuje do 14.03.2027 — zostalo 531 dni.",
+        [],
+        [],
+        facts=FACTS,
+        used_product_facts=False,  # the model said no; the text says otherwise
+    )
+    assert outcome == "answered"
+    assert "531" in answer
+    assert used_facts is True
+    assert citations == []  # and so no citation chips
+
+
+def test_an_abstention_with_nothing_under_it_loses_the_models_prose():
+    """The other half of not trusting the field.
+
+    Prose that nothing supports is not made safe by a no_answer label — the user
+    reads the prose, not the label. It is replaced, not kept.
+    """
+    chunks = [_chunk("Instrukcja czyszczenia filtra.")]
+    outcome, answer, citations, used_facts = enforce_grounding(
+        "no_answer",
+        "Ubezpieczenie zwykle obejmuje 10 lat na czesci.",
+        [],
+        chunks,
+        facts=None,
+    )
+    assert outcome == "no_answer"
+    assert answer == NO_ANSWER_TEXT
+    assert "10 lat" not in answer
+    assert citations == [] and used_facts is False
+
+
+def test_the_fact_check_ignores_words_and_two_digit_fragments():
+    """It must not be satisfied by something any prose would contain.
+
+    The brand and the product name are in the question, and "14" and "03" fall out
+    of every date. Only a distinctive digit-bearing token counts, or the check would
+    launder any sentence at all into a grounded answer.
+    """
+    assert facts_support("Zostalo 531 dni.", FACTS) is True
+    assert facts_support("Gwarancja wygasa 14 marca.", FACTS) is False
+    assert facts_support("Nie wiem, kiedy wygasa gwarancja.", FACTS) is False
+    assert facts_support("Zostalo 531 dni.", None) is False
 
 
 def test_an_uncited_document_claim_is_not_rescued_by_the_product_record():

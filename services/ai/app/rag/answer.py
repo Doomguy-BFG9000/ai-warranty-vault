@@ -17,9 +17,18 @@ product record and the warranty dates computed from it in SQL are the other, and
 are just as grounded — more so, being arithmetic rather than retrieval. Treating
 "no passages retrieved" as "nothing to answer from" made the assistant refuse
 "how long is left on my warranty", a question it had the exact answer to and no
-document could ever answer. So grounding is satisfied by a valid citation *or* by the
-model declaring it used the product facts, and the two are reported separately, so a
+document could ever answer. So grounding is satisfied by a valid citation *or* by a
+value from the record surviving into the text, and the two are reported separately, so a
 date never looks like a document quotation.
+
+**The outcome is the server's, not the model's.** `enforce_grounding` derives it from
+what can be verified — a validated cross-document conflict, a citation resolving into
+this turn's context, a fact value present in the text — and treats the model's
+`outcome` field as one more claim to check. The live model returned `no_answer` while
+its prose stated the exact expiry date it had been handed; believing the field there
+produced an abstention heading above a real answer, and, in the other direction, would
+let unsupported prose through simply for being labelled a refusal. Either way the
+prose is never kept without grounding under it.
 
 **A conflict is carried by structure, not by prose.** Prose is precisely where a model
 picks a side while appearing not to. For `conflicting_sources` the model supplies one
@@ -207,6 +216,54 @@ def _looks_polish(text: str) -> bool:
     return any(character in text for character in "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ")
 
 
+# Only tokens carrying a digit count: a year, a count of days, a serial. Words are
+# deliberately excluded — the brand and the product name are in the question too, so
+# matching them would let any prose at all pass as fact-grounded. Tokens shorter than
+# three characters are dropped for the same reason: "14" and "03" out of a date occur
+# everywhere.
+_FACT_TOKEN_RE = re.compile(r"[^\W_]*\d[^\W_]*", re.UNICODE)
+_MIN_FACT_TOKEN = 3
+
+
+def fact_tokens(text: str) -> set[str]:
+    """Digit-bearing tokens in a piece of text, long enough to be distinctive."""
+    found = (match.group(0).casefold() for match in _FACT_TOKEN_RE.finditer(text))
+    return {token for token in found if len(token) >= _MIN_FACT_TOKEN}
+
+
+def _fact_value_tokens(facts: dict[str, Any] | None) -> set[str]:
+    if not facts:
+        return set()
+    tokens: set[str] = set()
+    for key, value in facts.items():
+        if value is None or key.startswith("_"):
+            continue
+        tokens |= fact_tokens(str(value))
+    return tokens
+
+
+def facts_support(answer: str, facts: dict[str, Any] | None) -> bool:
+    """Whether the answer text actually carries a value from the product record.
+
+    This is the server's own check on the second grounding channel, and it exists
+    because the model's self-report is not reliable: the live model returned
+    `no_answer` while stating the exact expiry date it had been handed. A date is
+    the one thing in that answer the model could not have invented, so the presence
+    of a fact value *is* the grounding, whatever the model called the outcome.
+
+    Deliberately crude in one direction only. It can miss — a date reworded with no
+    matching token reads as ungrounded, and the answer is then downgraded to an
+    abstention, which is the safe failure. It cannot invent grounding that is not
+    there, because every token it matches came out of the database row.
+    """
+    if not answer.strip():
+        return False
+    tokens = _fact_value_tokens(facts)
+    if not tokens:
+        return False
+    return bool(tokens & fact_tokens(answer))
+
+
 def enforce_grounding(
     outcome: str,
     answer: str,
@@ -219,43 +276,68 @@ def enforce_grounding(
 ) -> tuple[str, str, list[dict[str, Any]], bool]:
     """The last gate before an answer is shown or stored.
 
+    The outcome is *derived here*, not taken from the model. The model's `outcome`
+    field is treated as one more claim to be checked: what decides the outcome is
+    what the server can verify — a validated cross-document conflict, a citation
+    that resolves into this turn's context, or a fact value present in the text.
+    Trusting the field instead produced the worst of both errors at once: an answer
+    stating a correct expiry date, labelled `no_answer`, with the date left in the
+    prose for the user to read under a heading saying nothing was found.
+
     Returns (outcome, answer, citations, used_product_facts).
     """
     has_facts = bool(facts)
-    grounded_in_facts = used_product_facts and has_facts
     conflict_positions = conflict_positions or []
+    text = answer.strip()
 
     if not chunks and not has_facts:
         # Nothing was retrieved and nothing is known about the product, so there is
         # genuinely nothing an answer could rest on, whatever the model said.
         return "no_answer", NO_ANSWER_TEXT, [], False
 
-    if outcome == "no_answer":
-        # Trust an abstention. A no-answer with citations attached is confusing, so
-        # they are dropped rather than rendered as support for a non-answer.
-        return "no_answer", answer.strip() or NO_ANSWER_TEXT, [], False
+    # The record grounds the answer when a value out of it is present in the text —
+    # that is checkable, and the model's own flag is not. The flag on its own counts
+    # only next to a citation, where the citation does the grounding and the flag
+    # merely says the record was also involved, so the app can label it.
+    grounded_in_facts = has_facts and (
+        facts_support(text, facts) or (used_product_facts and bool(citations))
+    )
 
     if outcome == "conflicting_sources":
         # A conflict is a claim about two documents, so it has to be backed by two.
-        # Fewer than that and the outcome is not substantiated: fall back to an
-        # ordinary answer if it is cited, and to an abstention if it is not.
         documents = {entry["document_id"] for entry in conflict_positions}
         if len(conflict_positions) >= 2 and len(documents) >= 2:
-            return "conflicting_sources", render_conflict(answer, conflict_positions), citations, grounded_in_facts
+            return (
+                "conflicting_sources",
+                render_conflict(text, conflict_positions),
+                citations,
+                grounded_in_facts,
+            )
         logger.info(
             "conflicting_sources claimed with %s position(s) across %s document(s); downgraded",
             len(conflict_positions),
             len(documents),
         )
-        outcome = "answered"
 
-    if outcome == "answered" and not citations and not grounded_in_facts:
-        # Nothing supports it: neither a passage this turn retrieved, nor the saved
-        # product record.
-        logger.info("answer claimed outcome=answered with no valid grounding; downgraded")
-        return "no_answer", NO_ANSWER_TEXT, [], False
+    if citations or grounded_in_facts:
+        if not text:
+            return "no_answer", NO_ANSWER_TEXT, [], False
+        if outcome == "no_answer":
+            # Self-reported abstention with verifiable grounding under it. The prose
+            # is the answer; only the label was wrong.
+            logger.info(
+                "outcome=no_answer with %s citation(s) and facts=%s; promoted to answered",
+                len(citations),
+                grounded_in_facts,
+            )
+        return "answered", text, citations, grounded_in_facts
 
-    return outcome, answer.strip(), citations, grounded_in_facts
+    # Nothing supports it: no passage from this turn, no value from the record. The
+    # model's prose is discarded rather than shown — an uncited claim about someone's
+    # warranty is exactly the output this gate exists to stop, and it is no safer for
+    # having arrived under a `no_answer` label.
+    logger.info("answer had no verifiable grounding; abstaining")
+    return "no_answer", NO_ANSWER_TEXT, [], False
 
 
 async def compose_answer(
