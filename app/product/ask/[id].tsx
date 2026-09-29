@@ -259,20 +259,12 @@ export default function AskProductScreen() {
 
         <View style={styles.composer}>
           {/*
-            A reply-context chip, not a line of prose. It used to read
-            "Answering: <the whole question>" and wrap onto two lines, which looked
-            like a message rather than context and duplicated the assistant bubble
-            directly above it. One line, labelled, visually distinct — it earns its
-            place only when the transcript is hidden behind the keyboard.
+            No reply-context chip above the input. Two attempts at one — a line of
+            prose, then a labelled chip — both restated the clarifying question that
+            is already the last bubble in the transcript, one scroll-line above. The
+            placeholder ("Your answer…") carries the same information without
+            repeating the question.
           */}
-          {awaiting?.kind === 'clarification' ? (
-            <View style={styles.replyContext}>
-              <Text style={styles.replyContextLabel}>Replying to</Text>
-              <Text style={styles.replyContextQuestion} numberOfLines={1}>
-                {awaiting.question}
-              </Text>
-            </View>
-          ) : null}
           <View style={styles.composerRow}>
             <TextInput
               accessibilityLabel="Your question"
@@ -376,22 +368,6 @@ const styles = StyleSheet.create({
   },
   sendDisabled: { opacity: 0.4 },
   sendLabel: { ...typography.heading, color: colors.onPrimary },
-  replyContext: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.primary,
-    paddingLeft: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  replyContextLabel: {
-    ...typography.caption,
-    color: colors.primary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  replyContextQuestion: { ...typography.caption, color: colors.textMuted, flex: 1 },
   awaitingHint: { ...typography.caption, color: colors.primary },
   refresh: { ...typography.caption, color: colors.textFaint, textAlign: 'center' },
 });
