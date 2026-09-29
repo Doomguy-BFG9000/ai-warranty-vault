@@ -32,6 +32,10 @@ echo 'EXPO_PUBLIC_AI_API_URL=http://127.0.0.1:8000' >> .env
 npm run ios
 ```
 
+If `npm run typecheck` rejects the new screens' routes, the generated route types are
+stale — start the dev server once and they are rewritten (see the note in the root
+README). It does not affect running the app.
+
 Sign in (or sign up) and add one product by photographing a receipt, or by hand:
 
 - **Name:** AquaWash 8000 washing machine

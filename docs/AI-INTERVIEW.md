@@ -409,7 +409,11 @@ Say this plainly if asked. It is a much better answer than implying otherwise.
   is acceptable to the API. Checking the built payload is the cheap middle ground, and
   `scripts/preflight.py` is the expensive one that actually asks.
 - **No UI interaction on a device or simulator.** The bundle builds and the screens
-  typecheck and lint clean; nobody has tapped them.
+  typecheck and lint clean; nobody has tapped them. One caveat on the typecheck: it was
+  first run on a clone with no `.expo/types/router.d.ts`, where expo-router's `Href`
+  type is permissive, so it proved less than it appeared to. Re-run with the file
+  generated (start the dev server once) it still passes and the five new routes are all
+  present — but the first green tick was weaker than it looked.
 - **Chunk size, top-k and the relevance floor are reasoned, not tuned.** The corpus is six
   short synthetic documents.
 - **Groundedness is measured weakly** — "a cited passage contains the labelled phrase". It

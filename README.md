@@ -71,6 +71,15 @@ npm run android  # Android emulator
 npm start        # dev server + QR code for a physical device
 ```
 
+> **Run the dev server before trusting `npm run typecheck`.** `typedRoutes` is on, so
+> `tsc` checks every `router.push()` against `.expo/types/router.d.ts` — a *generated*
+> file that only the dev server writes. After pulling changes that add screens, a stale
+> copy makes `tsc` reject the new routes with "not assignable to type ...", listing only
+> the routes it knew about. Start the dev server once (`npm start`, then quit) and the
+> file is rewritten. `.expo/` is git-ignored, so a fresh clone simply has no copy — and
+> with no copy the route type is permissive and the errors do not appear at all, which
+> is the trap: typecheck can pass on a fresh clone and fail on a working one.
+
 ## AI extraction
 
 Receipt extraction runs in the `extract-receipt` Edge Function, never in the app —
