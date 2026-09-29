@@ -250,13 +250,31 @@ def _heuristic_structured(schema: dict[str, Any] | type, messages: Any) -> dict[
     if "answer" in name:
         sources = _sources_in_prompt(text)
         if not sources:
+            # No passages. The saved product record is still grounding on its own, and
+            # is the only thing that can answer a question about dates.
+            if "Product facts" in text:
+                return {
+                    "outcome": "answered",
+                    "answer": "Based on the saved product record.",
+                    "cited_sources": [],
+                    "used_product_facts": True,
+                    "conflicting_positions": [],
+                }
             return {
                 "outcome": "no_answer",
                 "answer": "The attached documents do not contain an answer to this question.",
                 "cited_sources": [],
+                "used_product_facts": False,
+                "conflicting_positions": [],
             }
         label, body = sources[0]
-        return {"outcome": "answered", "answer": body[:400], "cited_sources": [label]}
+        return {
+            "outcome": "answered",
+            "answer": body[:400],
+            "cited_sources": [label],
+            "used_product_facts": False,
+            "conflicting_positions": [],
+        }
 
     if "draft" in name or "claim" in name:
         sources = _sources_in_prompt(text)

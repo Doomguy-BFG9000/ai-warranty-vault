@@ -69,7 +69,7 @@ from app.config import Settings
 from app.db import Database
 from app.graph.drafts import approve_draft, propose_draft, reject_draft
 from app.graph.state import AssistantState
-from app.graph.tools import build_tools, chunk_from_state
+from app.graph.tools import build_tools, chunk_from_state, load_product_facts
 from app.providers import EmbeddingHandle, build_chat_model
 from app.rag.answer import compose_answer, render_facts, render_sources, resolve_citations
 from app.rag.prompts import (
@@ -213,6 +213,13 @@ def build_graph(
         chunks = [chunk_from_state(record) for record in state.get("sources") or []]
         question = _last_user_text(state)
 
+        # Load the product record if the model did not ask for it. Dates and identity
+        # are answerable from it alone, so whether the question can be answered must
+        # not hinge on the model having picked a tool. One owner-scoped query.
+        facts = state.get("facts") or {}
+        if not facts and product_id is not None:
+            facts = await load_product_facts(db, claims, product_id)
+
         async with telemetry.stage(
             "graph.compose",
             user_id=user_id,
@@ -220,7 +227,7 @@ def build_graph(
             sources=len(chunks),
         ) as stage:
             result = await compose_answer(
-                chat_model=chat, question=question, chunks=chunks, facts=state.get("facts") or None
+                chat_model=chat, question=question, chunks=chunks, facts=facts or None
             )
             stage.prompt_version = result.prompt_version
             stage.input_tokens = result.input_tokens
@@ -228,12 +235,15 @@ def build_graph(
             stage.detail["outcome"] = result.outcome
             stage.detail["citations"] = len(result.citations)
             stage.detail["dropped_labels"] = len(result.dropped_labels)
+            stage.detail["used_product_facts"] = result.used_product_facts
 
         return {
             "messages": [AIMessage(content=result.answer)],
             "outcome": result.outcome,
             "answer": result.answer,
             "citations": result.citations,
+            "used_product_facts": result.used_product_facts,
+            "facts": facts,
         }
 
     # ── draft_claim ─────────────────────────────────────────────────────────

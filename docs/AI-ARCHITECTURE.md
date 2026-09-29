@@ -274,11 +274,28 @@ allowed to say no. In `vector` mode the floor is a similarity; in `hybrid` mode 
 RRF score — separate settings, because comparing one against the other is the usual
 mistake.
 
-**Grounding.** The model sees labelled sources and returns labels. It never sees or
-produces a chunk id, a page number or a document name, so there is nothing to
-transcribe wrongly or invent. `resolve_citations` maps each label to the chunk *the
-server put under it*; a label outside this turn's context is dropped; an "answered"
-outcome with no valid citation is replaced by a no-answer.
+**Grounding, through two channels.** The model sees labelled sources and returns
+labels. It never sees or produces a chunk id, a page number or a document name, so
+there is nothing to transcribe wrongly or invent. `resolve_citations` maps each label
+to the chunk *the server put under it*, and a label outside this turn's context is
+dropped.
+
+Retrieved passages are one channel. The user's saved product record — and the warranty
+dates computed from it in SQL — are the other, and they are at least as grounded, being
+arithmetic rather than retrieval. Treating "nothing retrieved" as "nothing to answer
+from" made the assistant refuse *how long is left on my warranty*, a question it had the
+exact answer to and no document could ever answer. So an `answered` outcome needs a valid
+citation **or** the model declaring it used the product facts, and the two are reported
+separately (`used_product_facts`) so a computed date is never rendered as a quotation.
+The facts are loaded by the answering step itself when the model did not call the tool:
+whether a date question can be answered must not hinge on tool selection.
+
+**A conflict is carried by structure, not prose.** Prose is exactly where a model picks
+a side while appearing not to. For `conflicting_sources` the model supplies one neutral
+sentence plus one entry per position with its source label; the server resolves those
+labels, **refuses the outcome unless two positions resolve to two different documents**,
+and renders the sides itself. A claimed conflict backed by one document is downgraded to
+an ordinary cited answer rather than asserted.
 
 **Structured data stays deterministic.** `public.product_warranty_facts(product_id)`
 computes the expiry and days remaining in SQL from stored fields. The model is handed

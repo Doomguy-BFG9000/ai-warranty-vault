@@ -29,7 +29,17 @@ export function ChatBubble({
         ) : null}
         <Text style={[styles.text, isUser && styles.textUser]}>{message.content}</Text>
         {!isUser ? (
-          <CitationList citations={message.citations} onOpen={onOpenCitation} />
+          <>
+            <CitationList citations={message.citations} onOpen={onOpenCitation} />
+            {/*
+              A date computed from the saved record has no page to open, so it gets
+              its own marker rather than being left to look unsourced — or worse,
+              being mistaken for something a document said.
+            */}
+            {message.used_product_facts ? (
+              <Text style={styles.factsNote}>From your saved product record</Text>
+            ) : null}
+          </>
         ) : null}
       </View>
     </View>
@@ -77,6 +87,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: radii.sm,
   },
   badge: { ...typography.caption, fontWeight: '600', textTransform: 'uppercase' },
+  factsNote: { ...typography.caption, color: colors.textFaint, marginTop: spacing.xs },
   text: { ...typography.body, color: colors.text, lineHeight: 21 },
   textUser: { color: colors.onPrimary },
 });

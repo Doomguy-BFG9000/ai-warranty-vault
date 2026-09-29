@@ -112,7 +112,7 @@ async def _record_message(
     sql = """
         insert into public.ai_messages (thread_id, user_id, role, content, citations, outcome, meta)
         values (%s, %s, %s, %s, %s, %s, %s)
-        returning id, role::text as role, content, citations, outcome, created_at
+        returning id, role::text as role, content, citations, outcome, meta, created_at
     """
     params = (
         thread_id,
@@ -140,12 +140,18 @@ async def _record_message(
 
 
 def _message_response(row: dict[str, Any]) -> MessageResponse:
+    # `meta` carries non-secret run metadata; the one field the app needs from it is
+    # whether the answer was grounded in the saved product record rather than a
+    # document. Kept in meta rather than its own column, so no migration is needed
+    # for a presentational flag.
+    meta = row.get("meta") or {}
     return MessageResponse(
         id=row["id"],
         role=row["role"],
         content=row["content"],
         citations=row.get("citations") or [],
         outcome=row.get("outcome"),
+        used_product_facts=bool(meta.get("used_product_facts")),
         created_at=row["created_at"].isoformat(),
     )
 
@@ -309,7 +315,7 @@ async def get_thread(
         rows = await fetch_all(
             conn,
             """
-            select id, role::text as role, content, citations, outcome, created_at
+            select id, role::text as role, content, citations, outcome, meta, created_at
             from public.ai_messages
             where thread_id = %s
             order by created_at
@@ -533,7 +539,7 @@ async def _turn_from_state(
         content=answer,
         citations=citations,
         outcome=outcome,
-        meta=meta,
+        meta={**meta, "used_product_facts": bool(state.get("used_product_facts"))},
     )
     return TurnResponse(
         thread_id=thread_id, outcome=outcome, message=_message_response(row), awaiting=None

@@ -110,6 +110,13 @@ export interface AssistantMessage {
   content: string;
   citations: Citation[];
   outcome: TurnOutcome | null;
+  /**
+   * True when the answer rests on the user's saved product record and the warranty
+   * dates computed from it, rather than on a document passage. Reported separately
+   * from citations: a computed date must never be shown as though a document had
+   * stated it.
+   */
+  used_product_facts: boolean;
   created_at: string;
 }
 

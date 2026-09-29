@@ -58,6 +58,10 @@ class AssistantState(TypedDict, total=False):
     outcome: str
     answer: str
     citations: list[dict[str, Any]]
+    # True when the answer rests on the saved product record rather than on a
+    # document. Kept separate from citations so a computed date is never rendered
+    # as though a document had stated it.
+    used_product_facts: bool
 
     # Claim draft
     draft: dict[str, Any]

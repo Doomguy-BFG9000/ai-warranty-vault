@@ -27,6 +27,7 @@ import {
 import { useProduct } from '@/hooks/useProducts';
 import { useProductDocuments } from '@/hooks/useProductDocuments';
 import { getAiErrorMessage } from '@/lib/aiApi';
+import { withOptimisticMessage } from '@/lib/chat';
 import { env } from '@/lib/env';
 import { colors, radii, spacing, typography } from '@/theme';
 import type { AssistantMessage, Citation } from '@/types/ai';
@@ -66,17 +67,30 @@ export default function AskProductScreen() {
 
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
+  /**
+   * What the user just sent, shown immediately.
+   *
+   * A turn can take many seconds — retrieval, then a model call — and without this
+   * the message vanished from the input and reappeared only when the server answered,
+   * which reads as the app having dropped it.
+   *
+   * It is *hidden* rather than cleared once the server transcript contains it, so
+   * there is no gap between the optimistic bubble disappearing and the real one
+   * arriving. Derived, not synchronised in an effect.
+   */
+  const [sent, setSent] = useState<string | null>(null);
   const listRef = useRef<FlatList<AssistantMessage>>(null);
 
   const messages = thread?.messages ?? [];
+  const rendered = withOptimisticMessage(messages, sent);
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (rendered.length > 0) {
       // Small delay so the list has laid out the new row before scrolling to it.
       const timer = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
       return () => clearTimeout(timer);
     }
-  }, [messages.length]);
+  }, [rendered.length]);
 
   const awaiting = thread?.awaiting ?? null;
   const busy = sendMessage.isPending || resume.isPending || createThread.isPending;
@@ -87,11 +101,21 @@ export default function AskProductScreen() {
     if (!text || busy) return;
     setError(null);
     setDraft('');
+    setSent(text);
 
     // A pending question is answered through resume, not as a new message: sending a
     // new question while one is outstanding would strand it.
     if (threadId && awaiting?.kind === 'clarification') {
-      resume.mutate({ answer: text }, { onError: (err) => setError(getAiErrorMessage(err)) });
+      resume.mutate(
+        { answer: text },
+        {
+          onError: (err) => {
+            setSent(null);
+            setDraft(text);
+            setError(getAiErrorMessage(err));
+          },
+        },
+      );
       return;
     }
 
@@ -101,7 +125,9 @@ export default function AskProductScreen() {
       setCreatedThreadId(active);
       await sendMessage.mutateAsync({ threadId: active, content: text });
     } catch (err) {
-      // Put the text back rather than losing what they typed.
+      // Put the text back rather than losing what they typed, and take the optimistic
+      // bubble away — it was never delivered.
+      setSent(null);
       setDraft(text);
       setError(getAiErrorMessage(err));
     }
@@ -167,7 +193,7 @@ export default function AskProductScreen() {
       >
         <FlatList<AssistantMessage>
           ref={listRef}
-          data={messages}
+          data={rendered}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
@@ -232,10 +258,20 @@ export default function AskProductScreen() {
         />
 
         <View style={styles.composer}>
+          {/*
+            A reply-context chip, not a line of prose. It used to read
+            "Answering: <the whole question>" and wrap onto two lines, which looked
+            like a message rather than context and duplicated the assistant bubble
+            directly above it. One line, labelled, visually distinct — it earns its
+            place only when the transcript is hidden behind the keyboard.
+          */}
           {awaiting?.kind === 'clarification' ? (
-            <Text style={styles.awaitingHint} numberOfLines={2}>
-              Answering: {awaiting.question}
-            </Text>
+            <View style={styles.replyContext}>
+              <Text style={styles.replyContextLabel}>Replying to</Text>
+              <Text style={styles.replyContextQuestion} numberOfLines={1}>
+                {awaiting.question}
+              </Text>
+            </View>
           ) : null}
           <View style={styles.composerRow}>
             <TextInput
@@ -340,6 +376,22 @@ const styles = StyleSheet.create({
   },
   sendDisabled: { opacity: 0.4 },
   sendLabel: { ...typography.heading, color: colors.onPrimary },
+  replyContext: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.primary,
+    paddingLeft: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  replyContextLabel: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  replyContextQuestion: { ...typography.caption, color: colors.textMuted, flex: 1 },
   awaitingHint: { ...typography.caption, color: colors.primary },
   refresh: { ...typography.caption, color: colors.textFaint, textAlign: 'center' },
 });

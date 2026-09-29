@@ -11,6 +11,21 @@ Abstention is a first-class outcome, not a phrasing. If the model claims to have
 answered but cited nothing valid, the answer is replaced with a no-answer — an
 uncited claim about someone's warranty is exactly the output this system exists to
 avoid producing.
+
+**Two grounding channels, not one.** Retrieved passages are one. The user's saved
+product record and the warranty dates computed from it in SQL are the other, and they
+are just as grounded — more so, being arithmetic rather than retrieval. Treating
+"no passages retrieved" as "nothing to answer from" made the assistant refuse
+"how long is left on my warranty", a question it had the exact answer to and no
+document could ever answer. So grounding is satisfied by a valid citation *or* by the
+model declaring it used the product facts, and the two are reported separately, so a
+date never looks like a document quotation.
+
+**A conflict is carried by structure, not by prose.** Prose is precisely where a model
+picks a side while appearing not to. For `conflicting_sources` the model supplies one
+neutral sentence plus one entry per position with its source label; the server renders
+the sides itself and refuses the outcome unless two positions resolve to two different
+documents.
 """
 
 from __future__ import annotations
@@ -35,6 +50,13 @@ NO_ANSWER_TEXT = (
     "Adding the manual or the warranty card would let me answer it."
 )
 
+# Lead-in for the server-rendered conflict block. Deliberately not a sentence the
+# model wrote: it must not vary, and it must not lean.
+CONFLICT_HEADING = {
+    "en": "The documents do not agree:",
+    "pl": "Dokumenty nie są zgodne:",
+}
+
 
 @dataclass
 class AnswerResult:
@@ -42,6 +64,10 @@ class AnswerResult:
     answer: str
     citations: list[dict[str, Any]] = field(default_factory=list)
     dropped_labels: list[str] = field(default_factory=list)
+    # True when the answer rests on the user's saved record and the dates computed
+    # from it. Surfaced to the app, which labels it as such — a computed date must
+    # never be presented as if a document had said it.
+    used_product_facts: bool = False
     input_tokens: int | None = None
     output_tokens: int | None = None
     prompt_version: str = ANSWER_PROMPT_VERSION
@@ -124,25 +150,112 @@ def resolve_citations(
     return resolved, dropped
 
 
-def enforce_grounding(
-    outcome: str, answer: str, citations: list[dict[str, Any]], chunks: list[RetrievedChunk]
-) -> tuple[str, str, list[dict[str, Any]]]:
-    """The last gate before an answer is shown or stored."""
-    if not chunks:
-        # Nothing was retrieved, so there is nothing an answer could rest on,
-        # whatever the model said.
-        return "no_answer", NO_ANSWER_TEXT, []
+def resolve_conflict_positions(
+    positions: Any, chunks: list[RetrievedChunk]
+) -> list[dict[str, Any]]:
+    """Map each claimed position onto the chunk its label names.
 
-    if outcome in ("answered", "conflicting_sources") and not citations:
-        logger.info("answer claimed outcome=%s with no valid citation; downgraded", outcome)
-        return "no_answer", NO_ANSWER_TEXT, []
+    Same rule as citations: a label that was not in this turn's context is dropped,
+    so a "conflict" cannot be asserted against a source the server never supplied.
+    """
+    resolved: list[dict[str, Any]] = []
+    if not isinstance(positions, list):
+        return resolved
+
+    for entry in positions:
+        if not isinstance(entry, dict):
+            continue
+        text = str(entry.get("position") or "").strip()
+        match = _LABEL_RE.search(str(entry.get("source") or ""))
+        if not text or match is None:
+            continue
+        index = int(match.group(1)) - 1
+        if not 0 <= index < len(chunks):
+            continue
+        chunk = chunks[index]
+        resolved.append(
+            {
+                "position": text,
+                **chunk.as_source(label_for(index)),
+            }
+        )
+    return resolved
+
+
+def render_conflict(answer: str, positions: list[dict[str, Any]]) -> str:
+    """Build the conflict text from structure, so the sides cannot be buried.
+
+    The model contributes one neutral sentence and the wording of each position; the
+    ordering, the bullets and the attribution are the server's. Nothing here ranks the
+    positions or adds a recommendation.
+    """
+    heading = CONFLICT_HEADING["pl"] if _looks_polish(answer) else CONFLICT_HEADING["en"]
+    lines = [answer.strip(), "", heading]
+    for entry in positions:
+        where = entry.get("document_title") or "document"
+        locator = entry.get("locator")
+        lines.append(f"• {entry['position']} — {where}" + (f", {locator}" if locator else ""))
+    return "\n".join(line for line in lines if line is not None).strip()
+
+
+def _looks_polish(text: str) -> bool:
+    """Crude, and only ever picks which fixed heading to use.
+
+    Getting it wrong costs one line of English above Polish bullets, which is why a
+    character test is proportionate here and a language-detection dependency is not.
+    """
+    return any(character in text for character in "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ")
+
+
+def enforce_grounding(
+    outcome: str,
+    answer: str,
+    citations: list[dict[str, Any]],
+    chunks: list[RetrievedChunk],
+    *,
+    facts: dict[str, Any] | None = None,
+    used_product_facts: bool = False,
+    conflict_positions: list[dict[str, Any]] | None = None,
+) -> tuple[str, str, list[dict[str, Any]], bool]:
+    """The last gate before an answer is shown or stored.
+
+    Returns (outcome, answer, citations, used_product_facts).
+    """
+    has_facts = bool(facts)
+    grounded_in_facts = used_product_facts and has_facts
+    conflict_positions = conflict_positions or []
+
+    if not chunks and not has_facts:
+        # Nothing was retrieved and nothing is known about the product, so there is
+        # genuinely nothing an answer could rest on, whatever the model said.
+        return "no_answer", NO_ANSWER_TEXT, [], False
 
     if outcome == "no_answer":
         # Trust an abstention. A no-answer with citations attached is confusing, so
         # they are dropped rather than rendered as support for a non-answer.
-        return "no_answer", answer.strip() or NO_ANSWER_TEXT, []
+        return "no_answer", answer.strip() or NO_ANSWER_TEXT, [], False
 
-    return outcome, answer.strip(), citations
+    if outcome == "conflicting_sources":
+        # A conflict is a claim about two documents, so it has to be backed by two.
+        # Fewer than that and the outcome is not substantiated: fall back to an
+        # ordinary answer if it is cited, and to an abstention if it is not.
+        documents = {entry["document_id"] for entry in conflict_positions}
+        if len(conflict_positions) >= 2 and len(documents) >= 2:
+            return "conflicting_sources", render_conflict(answer, conflict_positions), citations, grounded_in_facts
+        logger.info(
+            "conflicting_sources claimed with %s position(s) across %s document(s); downgraded",
+            len(conflict_positions),
+            len(documents),
+        )
+        outcome = "answered"
+
+    if outcome == "answered" and not citations and not grounded_in_facts:
+        # Nothing supports it: neither a passage this turn retrieved, nor the saved
+        # product record.
+        logger.info("answer claimed outcome=answered with no valid grounding; downgraded")
+        return "no_answer", NO_ANSWER_TEXT, [], False
+
+    return outcome, answer.strip(), citations, grounded_in_facts
 
 
 async def compose_answer(
@@ -154,13 +267,19 @@ async def compose_answer(
     history: list[dict[str, str]] | None = None,
 ) -> AnswerResult:
     """Ask the model for a grounded answer, then verify it is one."""
-    if not chunks:
-        # Skip the model call entirely: there is no context, so the only correct
-        # output is the abstention, and paying for a round-trip to be told that is
-        # waste.
+    if not chunks and not facts:
+        # Skip the model call entirely: nothing was retrieved and nothing is known
+        # about the product, so the only correct output is the abstention and paying
+        # for a round-trip to be told that is waste. Facts alone are enough to
+        # proceed — "how long is left on my warranty" has an exact answer that no
+        # document could ever supply.
         return AnswerResult(outcome="no_answer", answer=NO_ANSWER_TEXT)
 
-    blocks = [render_facts(facts), f"Sources:\n{render_sources(chunks)}", f"Question: {question}"]
+    blocks = [
+        render_facts(facts),
+        f"Sources:\n{render_sources(chunks)}",
+        f"Question: {question}",
+    ]
     user_content = "\n\n".join(block for block in blocks if block)
 
     messages: list[dict[str, Any]] = [{"role": "system", "content": ANSWER_SYSTEM}]
@@ -185,7 +304,16 @@ async def compose_answer(
         cited = []
 
     citations, dropped = resolve_citations(cited, chunks)
-    outcome, answer, citations = enforce_grounding(outcome, answer, citations, chunks)
+    conflict_positions = resolve_conflict_positions(parsed.get("conflicting_positions"), chunks)
+    outcome, answer, citations, used_facts = enforce_grounding(
+        outcome,
+        answer,
+        citations,
+        chunks,
+        facts=facts,
+        used_product_facts=bool(parsed.get("used_product_facts")),
+        conflict_positions=conflict_positions,
+    )
 
     input_tokens = output_tokens = None
     if usage_source is not None:
@@ -201,6 +329,7 @@ async def compose_answer(
         answer=answer,
         citations=citations,
         dropped_labels=dropped,
+        used_product_facts=used_facts,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
     )

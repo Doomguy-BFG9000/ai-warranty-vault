@@ -108,6 +108,83 @@ def chunk_from_state(record: dict[str, Any]) -> RetrievedChunk:
     )
 
 
+async def load_product_facts(
+    db: Database, claims: dict[str, Any], product_id: uuid.UUID
+) -> dict[str, Any]:
+    """The user's saved record for a product, plus the warranty dates computed in SQL.
+
+    Factored out of the tool so the answering step can load it directly. A question
+    about dates must not depend on the model having chosen to call a tool: the query
+    is cheap, owner-scoped, and the difference between answering and refusing.
+
+    Returns {} when the product is not the caller's — same as a product that does not
+    exist, which is the point.
+    """
+    async with db.user_scope(claims) as conn:
+        row = await fetch_one(
+            conn,
+            """
+            select p.name, p.merchant, p.category, p.price_cents, p.currency,
+                   p.purchase_date, p.warranty_months, p.warranty_expires_at,
+                   f.days_remaining, f.status
+            from public.products p
+            -- Warranty arithmetic is done in SQL from stored fields. The model is
+            -- told the answer; it is never asked to work out a date.
+            join public.product_warranty_facts(p.id) f on true
+            where p.id = %s
+            """,
+            (product_id,),
+        )
+        documents = await fetch_all(
+            conn,
+            """
+            select title, kind::text as kind, status::text as status, page_count, chunk_count
+            from public.product_documents
+            where product_id = %s
+            order by created_at
+            """,
+            (product_id,),
+        )
+
+    if row is None:
+        return {}
+
+    return {
+        "found": True,
+        "product_id": str(product_id),
+        "name": row["name"],
+        "merchant": row["merchant"],
+        "category": row["category"],
+        "price": (
+            f"{row['price_cents'] / 100:.2f} {row['currency']}"
+            if row["price_cents"] is not None
+            else None
+        ),
+        "purchase_date": str(row["purchase_date"]) if row["purchase_date"] else None,
+        "warranty_months": row["warranty_months"],
+        "warranty_expires_at": (
+            str(row["warranty_expires_at"]) if row["warranty_expires_at"] else None
+        ),
+        "days_remaining": row["days_remaining"],
+        "warranty_window": row["status"],
+        "documents": [
+            {
+                "title": doc["title"],
+                "kind": doc["kind"],
+                "indexed": doc["status"] == "ready",
+                "pages": doc["page_count"],
+                "passages": doc["chunk_count"],
+            }
+            for doc in documents
+        ],
+        "caveat": (
+            "The warranty window is computed from the saved purchase date and "
+            "warranty length. It does not establish that any particular fault "
+            "is covered."
+        ),
+    }
+
+
 def build_tools(
     *,
     db: Database,
@@ -214,77 +291,11 @@ def build_tools(
         product_id: str | None = None,
     ) -> Command:
         product = await _resolve_product(product_id)
-        if product is None:
+        payload: dict[str, Any] = {}
+        if product is not None:
+            payload = await load_product_facts(db, claims, product)
+        if not payload:
             payload = {"found": False, "note": "No such product for this user."}
-            return Command(
-                update={
-                    "messages": [
-                        ToolMessage(json.dumps(payload), tool_call_id=tool_call_id, name="get_product_facts")
-                    ]
-                }
-            )
-
-        async with db.user_scope(claims) as conn:
-            row = await fetch_one(
-                conn,
-                """
-                select p.name, p.merchant, p.category, p.price_cents, p.currency,
-                       p.purchase_date, p.warranty_months, p.warranty_expires_at,
-                       f.days_remaining, f.status
-                from public.products p
-                -- Warranty arithmetic is done in SQL from stored fields. The model
-                -- is told the answer; it is never asked to work out a date.
-                join public.product_warranty_facts(p.id) f on true
-                where p.id = %s
-                """,
-                (product,),
-            )
-            documents = await fetch_all(
-                conn,
-                """
-                select title, kind::text as kind, status::text as status, page_count, chunk_count
-                from public.product_documents
-                where product_id = %s
-                order by created_at
-                """,
-                (product,),
-            )
-
-        if row is None:
-            payload = {"found": False, "note": "No such product for this user."}
-        else:
-            payload = {
-                "found": True,
-                "product_id": str(product),
-                "name": row["name"],
-                "merchant": row["merchant"],
-                "category": row["category"],
-                "price": (
-                    f"{row['price_cents'] / 100:.2f} {row['currency']}" if row["price_cents"] is not None else None
-                ),
-                "purchase_date": str(row["purchase_date"]) if row["purchase_date"] else None,
-                "warranty_months": row["warranty_months"],
-                "warranty_expires_at": (
-                    str(row["warranty_expires_at"]) if row["warranty_expires_at"] else None
-                ),
-                "days_remaining": row["days_remaining"],
-                "warranty_window": row["status"],
-                "documents": [
-                    {
-                        "title": doc["title"],
-                        "kind": doc["kind"],
-                        "indexed": doc["status"] == "ready",
-                        "pages": doc["page_count"],
-                        "passages": doc["chunk_count"],
-                    }
-                    for doc in documents
-                ],
-                "caveat": (
-                    "The warranty window is computed from the saved purchase date and "
-                    "warranty length. It does not establish that any particular fault "
-                    "is covered."
-                ),
-            }
 
         return Command(
             update={

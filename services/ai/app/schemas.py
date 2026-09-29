@@ -160,6 +160,11 @@ class MessageResponse(BaseModel):
     content: str
     citations: list[Citation] = []
     outcome: str | None = None
+    # True when the answer rests on the user's saved product record and the warranty
+    # dates computed from it, rather than on a document passage. Reported separately
+    # from citations so the app can label it as such — a computed date must never be
+    # presented as though a document had stated it.
+    used_product_facts: bool = False
     created_at: str
 
 

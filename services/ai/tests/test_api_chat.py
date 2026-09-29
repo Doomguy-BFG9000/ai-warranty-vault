@@ -308,3 +308,62 @@ async def test_the_operations_log_endpoint_returns_only_the_callers_own_rows(api
     # Bob has his own rows at most; nothing of Alice's, and no content anywhere.
     serialised = response.text
     assert "filtr pompy" not in serialised
+
+
+async def test_a_warranty_date_question_is_answered_from_the_saved_record(api, corpus, alice):
+    """The P1 regression, end to end.
+
+    The model is scripted to use no tools at all, so the graph reaches the answering
+    step with zero retrieved passages. The product record still holds the answer, and
+    the graph loads it itself rather than depending on the model having called a tool.
+    """
+    thread_id = await _thread(api, alice, alice.product_id)
+
+    from langchain_core.messages import AIMessage
+
+    mock_chat.push_responses(
+        [
+            {"intent": "question", "needs_clarification": False, "clarifying_question": "", "reason": "dates"},
+            AIMessage(content=""),  # no tool call: nothing gets retrieved
+            {
+                "outcome": "answered",
+                "answer": "Gwarancja biegnie do 14.03.2027.",
+                "cited_sources": [],
+                "used_product_facts": True,
+                "conflicting_positions": [],
+            },
+        ]
+    )
+
+    turn = await api.post(
+        f"/v1/threads/{thread_id}/messages",
+        json={"content": "Ile mam jeszcze gwarancji?"},
+        headers=bearer(alice),
+    )
+    assert turn.status_code == 200, turn.text
+    body = turn.json()
+
+    assert body["outcome"] == "answered", "a computed date must not come back as an abstention"
+    assert body["message"]["used_product_facts"] is True
+    # No citations, because no document said it — and the flag is how the app knows to
+    # label the answer as coming from the saved record rather than from a page.
+    assert body["message"]["citations"] == []
+
+    # And it survives a reload, so the transcript renders the same way on a cold start.
+    state = await api.get(f"/v1/threads/{thread_id}", headers=bearer(alice))
+    assistant = [m for m in state.json()["messages"] if m["role"] == "assistant"][-1]
+    assert assistant["used_product_facts"] is True
+
+
+async def test_an_ordinary_document_answer_is_not_flagged_as_coming_from_the_record(
+    api, corpus, alice
+):
+    thread_id = await _thread(api, alice, alice.product_id)
+    turn = await api.post(
+        f"/v1/threads/{thread_id}/messages",
+        json={"content": "Co oznacza kod E17?"},
+        headers=bearer(alice),
+    )
+    body = turn.json()
+    assert body["message"]["citations"], "this one is answered from a document"
+    assert body["message"]["used_product_facts"] is False
