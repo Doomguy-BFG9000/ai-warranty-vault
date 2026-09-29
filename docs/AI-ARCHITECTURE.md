@@ -267,6 +267,22 @@ RRF rather than a weighted score sum because a cosine similarity and a `ts_rank_
 not on a common scale: mixing them numerically needs a normalisation that has to be
 retuned whenever either side changes. RRF consumes only *ranks*.
 
+**A per-document cap, inside the top-k.** `p_per_document_limit` (default 3) bounds how
+many chunks one document may contribute. Without it, a long document densely relevant to
+a subject wins every slot and a second document on the same subject never reaches the
+model at all. That surfaced as a *conflict* defect rather than a retrieval one: asked
+whether the power cable is covered, the assistant answered one side with a valid
+citation, because the warranty card had filled the context and the service terms — which
+say the opposite — had not been retrieved. The conflict gate below is working correctly
+in that situation and cannot help; it is asked to compare two documents when only one
+arrived.
+
+The cap is applied by ranking within each document and *then* taking the global top-k,
+so it is part of the selection rather than a trim of its output. Trimming afterwards
+cannot recover a row that was never selected. Setting it to 0 disables it, which is how
+`eval/` measures what the cap costs on the same corpus: capping is not free — it spends
+slots on breadth that a single-document question would rather spend on depth.
+
 The relevance floor is a noise filter, not a confidence estimate. A similarity is not a
 probability that the answer is in the chunk, which is why whether the retrieved text
 actually supports an answer is decided afterwards, by the answering step, which is
@@ -285,10 +301,26 @@ dates computed from it in SQL — are the other, and they are at least as ground
 arithmetic rather than retrieval. Treating "nothing retrieved" as "nothing to answer
 from" made the assistant refuse *how long is left on my warranty*, a question it had the
 exact answer to and no document could ever answer. So an `answered` outcome needs a valid
-citation **or** the model declaring it used the product facts, and the two are reported
-separately (`used_product_facts`) so a computed date is never rendered as a quotation.
+citation **or** a value from the record present in the answer text, and the two are
+reported separately (`used_product_facts`) so a computed date is never rendered as a
+quotation.
 The facts are loaded by the answering step itself when the model did not call the tool:
 whether a date question can be answered must not hinge on tool selection.
+
+**The outcome is derived, not reported.** The model returns an `outcome` field and the
+server treats it as one more claim to check. It has to: asked *how much warranty is
+left*, the live model produced the correct expiry date from the record it had been handed
+and labelled the turn `no_answer` with `used_product_facts` false. Believing the field
+showed a real answer under a heading saying nothing was found. So `enforce_grounding`
+decides the outcome from what it can verify — a validated cross-document conflict, a
+citation resolving into this turn's context, or a distinctive value from the product
+record present in the text — and corrects the label either way. The check on the fact
+channel matches only digit-bearing tokens (a year, a day count, a serial): words like the
+brand name appear in the question too, so matching them would launder any sentence into a
+grounded answer. It can miss, and a miss becomes an abstention, which is the safe
+direction. The same derivation closes the opposite leak: prose nothing supports is
+replaced rather than kept, because a `no_answer` label does not stop the user reading the
+paragraph under it.
 
 **A conflict is carried by structure, not prose.** Prose is exactly where a model picks
 a side while appearing not to. For `conflicting_sources` the model supplies one neutral
