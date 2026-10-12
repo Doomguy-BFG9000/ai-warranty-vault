@@ -14,5 +14,5 @@ name. Raw simulator captures and manual test reports (`TEST-*`) are git-ignored 
 local.
 
 `../social-preview.png` (1280×640) is the image GitHub shows when the repository link is
-shared; it is uploaded under **Settings → General → Social preview**, built from the
-screenshots above.
+shared; it is built from the screenshots above by `assets/source/render-icons.mjs` (see
+`assets/source/README.md`) and uploaded under **Settings → General → Social preview**.

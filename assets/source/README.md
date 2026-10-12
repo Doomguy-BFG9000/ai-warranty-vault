@@ -13,7 +13,12 @@ theme colours (`src/theme`). The PNGs in `assets/` are rendered from it:
 | `splash-icon.png` | 1024 | Mark only, transparent. |
 | `images/shield.png` | 157×192 | The mark cropped to the shield, for the in-app logo (`src/components/ShieldLogo.tsx`). |
 
-To regenerate after editing the SVG (needs a local puppeteer and Chromium; neither is
+`social-preview.html` lays out `docs/social-preview.png` (1280×640, the image GitHub shows
+when the repository link is shared) around the README screenshots in `docs/screenshots/`.
+The same script renders it, so retaking those screenshots and re-running the script
+refreshes it; upload the result under **Settings → General → Social preview**.
+
+To regenerate after editing the SVG, the card or the screenshots (needs a local puppeteer and Chromium; neither is
 a project dependency):
 
 ```bash

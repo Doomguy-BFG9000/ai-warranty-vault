@@ -1,4 +1,5 @@
-// Renders every app icon variant from app-icon.svg with a headless Chromium.
+// Renders every app icon variant from app-icon.svg, and the repository's social
+// preview image from social-preview.html, with a headless Chromium.
 //
 //   PUPPETEER=/path/to/puppeteer CHROMIUM=/path/to/chromium node assets/source/render-icons.mjs
 //
@@ -73,4 +74,11 @@ for (const { file, size, width = size, height = size, body, viewBox, transparent
   await page.screenshot({ path: join(assets, file), omitBackground: transparent });
   console.log(`${file} ${width}x${height}`);
 }
+// The social preview (Settings → General → Social preview on GitHub) is laid out in
+// HTML around the README screenshots, so it is loaded from disk rather than inlined.
+await page.setViewport({ width: 1280, height: 640, deviceScaleFactor: 1 });
+await page.goto(`file://${join(here, 'social-preview.html')}`, { waitUntil: 'networkidle0' });
+await page.screenshot({ path: join(assets, '..', 'docs', 'social-preview.png') });
+console.log('../docs/social-preview.png 1280x640');
+
 await browser.close();
