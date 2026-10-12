@@ -1,8 +1,7 @@
 # CLAUDE.md — AI Warranty Vault
 
-Project-specific instructions. Inherits the global engineering/product principles from
-`~/Personal/.claude/CLAUDE.md` (MVP speed, simple maintainable code, conventional commits,
-never commit secrets).
+Project-specific instructions for AI coding agents working in this repo. Principles: MVP
+speed, simple maintainable code, conventional commits, never commit secrets.
 
 @AGENTS.md
 
@@ -89,12 +88,3 @@ npm run ai:preflight    # verify keys, models and schema
 npm run ai:eval         # retrieval + answering evaluation
 npm run ai:walkthrough  # the whole document flow, printed
 ```
-
-<!-- BEGIN: personal-status -->
-# ~/Personal STATUS.md
-
-- This repository lives under `/Users/greg/Personal`.
-- Session start: open `/Users/greg/Personal/STATUS.md`, find this folder, continue from **Next**. Do not rediscover the project from README if Next is clear.
-- Session end (even if not asked): rewrite `/Users/greg/Personal/STATUS.md` — update only this project's block and the top indexes; never delete other projects; never commit STATUS.md here.
-- Protocol: `/Users/greg/Personal/AGENTS.md`
-<!-- END: personal-status -->

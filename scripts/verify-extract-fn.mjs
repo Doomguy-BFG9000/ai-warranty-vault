@@ -14,6 +14,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 const URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321';
+// Supabase's public local-development demo key (JWT claims: iss "supabase-demo").
+// Every `supabase start` ships this exact value; it is signed with the CLI's
+// published demo secret and only works against a local stack. Not a leak.
 const ANON =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';

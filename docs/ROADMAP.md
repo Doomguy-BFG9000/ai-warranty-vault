@@ -14,10 +14,12 @@ demoable (capture → extract → track → remind) by the end of Phase 6.
 | 6 | **Reminders** — push token registration, reminder rows, `send-reminders` + pg_cron, local fallback | ✅ Done |
 | 7 | **Freemium gating** — free product-count limit, upgrade sheet, `is_premium` bypass | ✅ Done |
 | 8 | **Polish & verify** — loading/error states, validation, README run steps, end-to-end simulator pass, `tsc` + lint | ✅ Done |
-| 9 | **Document assistant** — `services/ai` (FastAPI + LangChain + LangGraph), pgvector, hybrid retrieval with citations, human-approved claim drafts, document/search/chat/draft screens | ✅ Done locally |
+| 9 | **Document assistant** — `services/ai` (FastAPI + LangChain + LangGraph), pgvector, hybrid retrieval with citations, human-approved claim drafts, document/search/chat/draft screens | ✅ Done (not deployed) |
+| 10 | **Open source** — CI on every push, README, contributing and security policies | ✅ Done |
 
-Phase 9 is a working local build, not a deployment: it has no live-provider run
-behind it and no production hardening. See
+Phase 9 has been exercised end to end with live providers against a hosted Supabase
+project in manual test rounds on the iOS Simulator, but it is not deployed and has no
+production hardening. See
 [`AI-ARCHITECTURE.md`](AI-ARCHITECTURE.md) §10 for the limitations and
 [`AI-INTERVIEW.md`](AI-INTERVIEW.md) §11 for what deployment would still need.
 

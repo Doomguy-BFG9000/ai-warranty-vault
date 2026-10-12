@@ -360,7 +360,6 @@ async def test_pages_are_preserved_as_citable_page_numbers(
 
 def _three_page_pdf() -> bytes:
     """Three pages, each with distinct text, so page provenance is checkable."""
-    from tests.helpers import build_text_pdf
 
     # Each page carries well over the per-page character floor that decides
     # "text layer" vs "scan", so this fixture exercises the pdf_text path.
@@ -386,7 +385,6 @@ async def test_the_ocr_path_carries_real_page_numbers_into_citations(
     chunk, and that a page number the model was not given is rejected.
     """
     from app import mock_chat
-    from tests.helpers import build_text_pdf
 
     # A PDF whose text layer is too thin to use, so the scan path is taken.
     thin = build_text_pdf(["p1", "p2"])

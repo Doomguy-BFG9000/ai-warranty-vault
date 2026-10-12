@@ -68,7 +68,6 @@ async def main() -> int:
     from app.db import fetch_all, fetch_one
     from app.ingest import indexer as indexer_module
     from app.ingest.worker import drain
-    from app.providers import build_embeddings
     from app.storage import StoredObject
     from app.telemetry import Telemetry
     from eval.corpus import DOCUMENTS
@@ -262,7 +261,7 @@ async def main() -> int:
                 note("no draft was proposed; stopping here")
                 return 1
             note(f"subject: {draft['subject']}")
-            note(f"body:\n      " + draft["body"].replace("\n", "\n      ")[:400])
+            note("body:\n      " + draft["body"].replace("\n", "\n      ")[:400])
             if draft["missing_information"]:
                 note(f"gaps it refused to invent: {draft['missing_information']}")
 

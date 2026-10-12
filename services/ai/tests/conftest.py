@@ -39,7 +39,7 @@ os.environ.update(
         "DATABASE_URL": TEST_DSN,
         "PROVIDER_MODE": "mock",
         "SUPABASE_URL": "http://127.0.0.1:54321",
-        "SUPABASE_JWT_SECRET": "test-jwt-secret-not-a-real-one",
+        "SUPABASE_JWT_SECRET": "test-jwt-secret-not-a-real-one-padded-to-32b",
         "SUPABASE_SERVICE_ROLE_KEY": "test-service-role-key",
         "WORKER_LEASE_SECONDS": "5",
         "WORKER_BACKOFF_BASE_SECONDS": "1",

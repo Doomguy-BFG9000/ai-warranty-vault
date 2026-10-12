@@ -54,3 +54,10 @@ __pycache__/
 # generated native folders
 /ios
 /android
+
+# local test artifacts — manual test reports and simulator screenshots stay local;
+# curated screenshots for the README live in docs/screenshots/
+TEST-*
+*.log
+coverage/
+services/ai/eval/results/

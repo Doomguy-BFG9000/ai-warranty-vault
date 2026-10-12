@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import uuid
 
-import psycopg
 import pytest
 
 from app.db import fetch_all, fetch_one

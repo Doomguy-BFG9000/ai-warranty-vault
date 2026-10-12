@@ -72,7 +72,7 @@ npx supabase login
 npx supabase link --project-ref <ref>     # the ref is in the dashboard URL
 npx supabase db push                      # NOT `db reset` — that would wipe the project
 npx supabase gen types typescript --linked > src/types/database.ts
-npx supabase migration list               # confirm the four 20260927* rows landed
+npx supabase migration list               # confirm the 20260927* and 20260929* rows landed
 ```
 
 If `db push` cannot create the `vector` extension, enable it in

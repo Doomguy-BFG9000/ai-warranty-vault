@@ -20,7 +20,7 @@ describe('validateEmail', () => {
   });
 
   it('accepts a normal address, ignoring surrounding whitespace', () => {
-    expect(validateEmail('  greg@example.com  ')).toBeNull();
+    expect(validateEmail('  user@example.com  ')).toBeNull();
   });
 });
 

@@ -11,7 +11,7 @@
 │  - TanStack Query           │         │  - Edge Functions (Deno):        │
 │  - Supabase JS client       │         │      • extract-receipt (Claude)  │
 └─────────────────────────────┘         │      • send-reminders (cron)     │
-                                         │  - pg_cron → daily reminder scan │
+                                         │  - pg_cron → hourly reminder scan │
                                          └───────────────┬──────────────────┘
                                                          │ Claude API (vision)
                                                          ▼

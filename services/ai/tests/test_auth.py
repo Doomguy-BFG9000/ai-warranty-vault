@@ -12,7 +12,7 @@ from fastapi import HTTPException
 from app.auth import jwks_url, verify_token
 from app.config import Settings
 
-SECRET = "test-jwt-secret-not-a-real-one"
+SECRET = "test-jwt-secret-not-a-real-one-padded-to-32b"
 
 
 def _settings(**overrides) -> Settings:
@@ -45,7 +45,7 @@ def test_an_expired_token_is_rejected():
 
 def test_a_token_signed_with_the_wrong_secret_is_rejected():
     with pytest.raises(HTTPException) as caught:
-        verify_token(_token(secret="a-different-secret"), _settings())
+        verify_token(_token(secret="a-different-secret-also-at-least-32-bytes"), _settings())
     assert caught.value.status_code == 401
 
 

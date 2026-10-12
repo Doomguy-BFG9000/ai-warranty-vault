@@ -10,4 +10,5 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
+  setupFiles: ['<rootDir>/test/setupEnv.js'],
 };
