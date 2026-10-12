@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- A shield app icon replaces Expo's template icons on iOS, Android (adaptive and
+  themed) and the web, and the same shield replaces the 🛡️ emoji inside the app.
+- Tab bar icons: Ionicons for Add, Search and Settings (filled when selected), in place
+  of emoji.
+
 ## [1.0.0] — 2026-10-13
 
 First public release.

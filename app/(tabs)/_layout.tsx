@@ -1,16 +1,36 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { StyleSheet, Text } from 'react-native';
+import type { ComponentProps } from 'react';
+import { StyleSheet } from 'react-native';
 
 import { ShieldLogo } from '@/components/ShieldLogo';
 import { colors, typography } from '@/theme';
 
+type IconName = ComponentProps<typeof Ionicons>['name'];
+type IconColor = ComponentProps<typeof Ionicons>['color'];
+
+const ICON_SIZE = 22;
+
 /**
- * Emoji tab icons keep the MVP free of an icon-font dependency; the Vault tab uses
- * the app's own shield mark. Swap the rest for a proper icon set when the visual
- * design firms up.
+ * The Vault tab uses the app's own shield mark; the others use Ionicons, filled when
+ * selected and outlined otherwise, in the tab bar's active and inactive tints.
  */
-function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
-  return <Text style={[styles.icon, !focused && styles.iconInactive]}>{symbol}</Text>;
+function TabIcon({
+  name,
+  focused,
+  color,
+}: {
+  name: IconName;
+  focused: boolean;
+  color: IconColor;
+}) {
+  return (
+    <Ionicons
+      name={focused ? name : (`${name}-outline` as IconName)}
+      size={ICON_SIZE}
+      color={color}
+    />
+  );
 }
 
 export default function TabsLayout() {
@@ -35,7 +55,7 @@ export default function TabsLayout() {
         options={{
           title: 'Vault',
           tabBarIcon: ({ focused }) => (
-            <ShieldLogo size={22} style={!focused && styles.iconInactive} />
+            <ShieldLogo size={ICON_SIZE} style={!focused && styles.iconInactive} />
           ),
         }}
       />
@@ -43,21 +63,27 @@ export default function TabsLayout() {
         name="add"
         options={{
           title: 'Add',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="📸" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name="camera" focused={focused} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
           title: 'Search',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="🔎" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name="search" focused={focused} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="⚙️" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name="settings" focused={focused} color={color} />
+          ),
         }}
       />
     </Tabs>
@@ -65,6 +91,5 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  icon: { fontSize: 20 },
   iconInactive: { opacity: 0.5 },
 });
