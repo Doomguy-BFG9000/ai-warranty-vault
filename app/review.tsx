@@ -52,6 +52,10 @@ export default function ReviewScreen() {
   // Guards against the effect firing twice (React strict-mode double-invoke),
   // which would bill a second extraction for the same receipt.
   const startedRef = useRef(false);
+  // Set synchronously, unlike createProduct.isPending: a second tap in the same
+  // frame would otherwise start a second insert before the button re-renders
+  // as busy.
+  const savingRef = useRef(false);
 
   function applyExtraction(result: ReceiptExtraction) {
     setValues({
@@ -95,7 +99,8 @@ export default function ReviewScreen() {
       return;
     }
 
-    if (!user) return;
+    if (!user || savingRef.current) return;
+    savingRef.current = true;
 
     try {
       await createProduct.mutateAsync({
@@ -109,8 +114,15 @@ export default function ReviewScreen() {
         extraction_status: extraction ? 'done' : 'failed',
       });
 
-      router.dismissTo('/');
+      // Close this modal, then show the vault. `dismissTo('/')` left the modal open
+      // when it was opened from the Add tab, inviting a second tap that saved the
+      // same product twice.
+      router.dismiss();
+      router.navigate('/');
     } catch (error) {
+      // Released only on failure, so the user can retry. After a successful save the
+      // screen is closing, and a tap during the transition must not insert again.
+      savingRef.current = false;
       if (isFreeTierLimitError(error)) {
         // The cap is enforced by the database, so this is the authoritative
         // signal — the sheet explains it rather than a bare alert.
