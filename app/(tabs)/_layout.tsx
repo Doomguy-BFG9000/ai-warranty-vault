@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 
+import { ShieldLogo } from '@/components/ShieldLogo';
 import { colors, typography } from '@/theme';
 
 /**
- * Emoji tab icons keep the MVP free of an icon-font dependency. Swap for a
- * proper icon set when the visual design firms up.
+ * Emoji tab icons keep the MVP free of an icon-font dependency; the Vault tab uses
+ * the app's own shield mark. Swap the rest for a proper icon set when the visual
+ * design firms up.
  */
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
   return <Text style={[styles.icon, !focused && styles.iconInactive]}>{symbol}</Text>;
@@ -32,7 +34,9 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Vault',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="🛡️" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <ShieldLogo size={22} style={!focused && styles.iconInactive} />
+          ),
         }}
       />
       <Tabs.Screen

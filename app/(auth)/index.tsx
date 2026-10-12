@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
+import { ShieldLogo } from '@/components/ShieldLogo';
 import { TextField } from '@/components/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { getAuthErrorMessage } from '@/lib/errors';
@@ -59,7 +60,7 @@ export default function SignInScreen() {
   return (
     <Screen scroll keyboardAvoiding contentStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.logo}>🛡️</Text>
+        <ShieldLogo size={64} />
         <Text style={styles.title}>AI Warranty Vault</Text>
         <Text style={styles.subtitle}>
           Snap a receipt. Never miss a warranty again.
@@ -113,7 +114,6 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   content: { flexGrow: 1, justifyContent: 'center', gap: spacing.xxl },
   header: { alignItems: 'center', gap: spacing.sm },
-  logo: { fontSize: 56 },
   title: { ...typography.title, color: colors.text },
   subtitle: {
     ...typography.body,

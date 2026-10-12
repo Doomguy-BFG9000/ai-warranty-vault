@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Master for every app icon variant; regenerate the PNGs from this file
+       (see assets/source/README.md). Colours are the app's theme tokens. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#1B2740"/>
+      <stop offset="1" stop-color="#0B1120"/>
+    </radialGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#60A5FA"/>
+      <stop offset="0.55" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <rect id="background" width="1024" height="1024" fill="url(#bg)"/>
+  <g id="mark">
+    <path d="M512 176 L784 278 V488 C784 668 666 794 512 848 C358 794 240 668 240 488 V278 Z"
+          fill="url(#shield)" stroke="#93C5FD" stroke-width="18" stroke-linejoin="round"/>
+    <path d="M396 512 L478 594 L640 432" fill="none" stroke="#F8FAFC"
+          stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

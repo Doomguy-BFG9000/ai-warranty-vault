@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { ProductCard } from '@/components/ProductCard';
+import { ShieldLogo } from '@/components/ShieldLogo';
 import { useProducts } from '@/hooks/useProducts';
 import { getDatabaseErrorMessage } from '@/lib/errors';
 import { getWarrantyState } from '@/lib/warranty';
@@ -47,7 +48,7 @@ export default function VaultScreen() {
   if (!products || products.length === 0) {
     return (
       <SafeAreaView style={styles.centered} edges={['bottom']}>
-        <Text style={styles.emoji}>🛡️</Text>
+        <ShieldLogo size={64} style={styles.logo} />
         <Text style={styles.title}>Your vault is empty</Text>
         <Text style={styles.subtitle}>
           Photograph a receipt and we&apos;ll pull out the product and warranty for
@@ -105,6 +106,7 @@ const styles = StyleSheet.create({
   },
   list: { padding: spacing.lg, gap: spacing.md },
   emoji: { fontSize: 56, marginBottom: spacing.sm },
+  logo: { marginBottom: spacing.sm },
   title: { ...typography.heading, color: colors.text, textAlign: 'center' },
   subtitle: {
     ...typography.body,
