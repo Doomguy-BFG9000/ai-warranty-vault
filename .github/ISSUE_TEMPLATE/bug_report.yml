@@ -1,0 +1,48 @@
+name: Bug report
+description: Something in the app, the backend or the document assistant doesn't work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please don't include real receipts, API keys or personal data.
+        For security problems, use **Security → Report a vulnerability** instead of an issue.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - App (Expo / React Native)
+        - Backend (Supabase migrations, RLS, Edge Functions)
+        - Document assistant (services/ai)
+        - Docs / setup
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. npm run db:start
+        2. npm run ios
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Metro, Supabase, or pytest output. Redact any keys or tokens.
+      render: shell
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "macOS 15, Node 22, iOS Simulator (iPhone 17 Pro), commit abc1234"

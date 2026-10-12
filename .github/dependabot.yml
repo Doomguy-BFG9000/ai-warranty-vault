@@ -1,0 +1,18 @@
+# Version updates for the CI workflow's actions only.
+#
+# npm is deliberately absent: Expo SDK packages must move together (`npx expo
+# install --fix`), and per-package bumps would open PRs that break the build.
+# Python dependencies are pinned in services/ai/requirements.lock.txt and are
+# regenerated only from a green test run (see CLAUDE.md). Security fixes for both
+# still arrive through Dependabot security updates, enabled in repository settings.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
